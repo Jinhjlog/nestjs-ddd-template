@@ -1,0 +1,1 @@
+export const JWT_MODULE_OPTIONS = Symbol('JWT_MODULE_OPTIONS');

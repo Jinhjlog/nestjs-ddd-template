@@ -1,0 +1,19 @@
+services:
+  mariadb:
+    platform: linux/amd64
+    image: mariadb:11
+    container_name: nestjs-ddd-mariadb
+    restart: unless-stopped
+    ports:
+      - '3306:3306'
+    environment:
+      MYSQL_ROOT_PASSWORD: ${DB_ROOT_PASSWORD:-root}
+      MYSQL_DATABASE: ${DB_NAME:-app_db}
+    volumes:
+      - mariadb_data:/var/lib/mysql
+    command:
+      - --character-set-server=utf8mb4
+      - --collation-server=utf8mb4_unicode_ci
+
+volumes:
+  mariadb_data:

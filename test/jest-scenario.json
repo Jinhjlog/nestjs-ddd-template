@@ -1,0 +1,23 @@
+{
+  "moduleFileExtensions": ["js", "json", "ts"],
+  "rootDir": ".",
+  "testEnvironment": "node",
+  "testRegex": ".scenario.ts$",
+  "transform": {
+    "^.+\\.(t|j)s$": "ts-jest"
+  },
+  "moduleNameMapper": {
+    "^@core/(.*)$": "<rootDir>/../src/module/core/$1",
+    "^@lib/(.*)$": "<rootDir>/../src/lib/$1",
+    "^@shared/(.*)$": "<rootDir>/../src/shared/$1",
+    "^@prisma/generated/(.*)$": "<rootDir>/../generated/prisma/$1",
+    "^src/(.*)$": "<rootDir>/../src/$1",
+    "^(\\.{1,2}/.*)\\.js$": "$1"
+  },
+  "transformIgnorePatterns": ["node_modules/(?!(uuid)/)"],
+  "globalSetup": "<rootDir>/setup/global-setup.ts",
+  "globalTeardown": "<rootDir>/setup/global-teardown.ts",
+  "setupFiles": ["<rootDir>/setup/env-setup.ts"],
+  "testTimeout": 60000,
+  "verbose": true
+}

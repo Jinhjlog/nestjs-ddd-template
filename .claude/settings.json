@@ -1,0 +1,51 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npm run lint:*)",
+      "Bash(npm run build:*)",
+      "Bash(npm run test:*)",
+      "Bash(npm install:*)",
+      "Bash(npx tsc:*)",
+      "Bash(find:*)",
+      "Bash(grep:*)",
+      "Bash(ls:*)",
+      "Bash(xargs:*)",
+      "Bash(git add:*)",
+      "Bash(git commit:*)",
+      "Bash(git status:*)",
+      "Bash(git log:*)",
+      "Bash(git diff:*)",
+      "Bash(git branch:*)",
+      "Bash(git fetch:*)",
+      "Bash(docker exec:*)",
+      "Bash(docker ps:*)",
+      "Bash(docker compose:*)",
+      "Skill(domain-layer)",
+      "Skill(domain-layer:*)",
+      "Skill(infrastructure-layer)",
+      "Skill(infrastructure-layer:*)",
+      "Skill(application-layer)",
+      "Skill(application-layer:*)",
+      "Skill(presentation-layer)",
+      "Skill(presentation-layer:*)",
+      "Skill(commit-bot)",
+      "Skill(commit-bot:*)",
+      "Skill(swagger-bot)",
+      "Skill(swagger-bot:*)",
+      "Skill(e2e-patterns)",
+      "Skill(e2e-patterns:*)"
+    ],
+    "deny": [
+      "Bash(git reset --hard:*)",
+      "Bash(git clean -f:*)",
+      "Bash(git checkout -- .:*)",
+      "Bash(git branch -D:*)",
+      "Bash(sudo:*)",
+      "Bash(npx prisma migrate reset:*)",
+      "Bash(npm run prisma:reset:*)",
+      "Bash(npm publish:*)",
+      "Bash(kill:*)",
+      "Bash(pkill:*)"
+    ]
+  }
+}
