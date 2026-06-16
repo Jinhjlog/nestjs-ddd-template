@@ -1,6 +1,7 @@
 import { ApiProperty } from '@nestjs/swagger';
 
-export class LoginResponseDto {
+/** 관리자 인증 토큰 응답 (로그인·토큰 갱신 공통) */
+export class AdminTokenResponseDto {
   @ApiProperty({
     description: '액세스 토큰 (Authorization 헤더에 Bearer로 사용)',
     example: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...',
