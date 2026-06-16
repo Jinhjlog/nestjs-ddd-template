@@ -76,10 +76,12 @@ src/module/{module-name}/presentation/
 - Transformer(domain→presentation): `undefined → null` **삼항 연산자**(`??` 금지).
 - QueryService Impl(DB→domain): `null → undefined` 삼항.
 
-### 7. Swagger 문서화
+### 7. Swagger 문서화 (응답·에러 표준 = `rules/api-response.md`)
 
-- `@ApiOperation`, 성공 응답(`@ApiOkResponse`/`@ApiCreatedResponse`), `@ApiParam`, 명시적 `@HttpCode()` 부착.
-- 에러 응답 데코레이터는 **현재 단계에 맞게**(Mock·계약 단계면 happy 위주, 인증 401/403은 데코레이터 자동분 활용). 선제적 전체 에러 문서화는 단계 규율(rules) 따라 보류 가능.
+- **성공 = 리소스 그대로**(래퍼 없음): `@ApiOkResponse`/`@ApiCreatedResponse({ type: ResponseDto })`, 204는 `@ApiNoContentResponse`.
+- **에러 = RFC 9457 problem+json**: 본문 스키마는 항상 `ProblemDetailsDto` → **`@ApiProblemResponse(status, description)`**(`@shared/swagger`) 사용. description에 발생 가능 `code` 나열. (상태별 `@ApiNotFoundResponse` 등 대신 통일)
+- `@ApiOperation`·`@ApiParam`·명시적 `@HttpCode()` 부착.
+- 에러 문서화 범위는 단계에 맞게(Mock·계약 단계면 happy 위주, 인증 401/403은 데코레이터 자동분 활용). 선제적 전체 에러 문서화는 단계 규율 따라 보류 가능.
 
 ### 8. 페이지네이션
 

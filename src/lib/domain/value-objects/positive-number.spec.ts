@@ -16,9 +16,8 @@ describe('PositiveNumber', () => {
         PositiveNumber.create(invalidValue as any, { fieldName: '가격' }),
       ).toThrow(
         new ValueObjectValidationException({
-          entityName: '가격',
-          reason: '필수 값입니다',
-          errorCode: '가격_REQUIRED',
+          detail: '필수 값입니다',
+          code: '가격_REQUIRED',
         }),
       );
     });
@@ -32,9 +31,8 @@ describe('PositiveNumber', () => {
         PositiveNumber.create(invalidValue as any, { fieldName: '가격' }),
       ).toThrow(
         new ValueObjectValidationException({
-          entityName: '가격',
-          reason: '필수 값입니다',
-          errorCode: '가격_REQUIRED',
+          detail: '필수 값입니다',
+          code: '가격_REQUIRED',
         }),
       );
     });
@@ -48,9 +46,8 @@ describe('PositiveNumber', () => {
         PositiveNumber.create(invalidValue as any, { fieldName: '가격' }),
       ).toThrow(
         new ValueObjectValidationException({
-          entityName: '가격',
-          reason: '유효한 숫자여야 합니다',
-          errorCode: '가격_INVALID',
+          detail: '유효한 숫자여야 합니다',
+          code: '가격_INVALID',
         }),
       );
     });
@@ -64,9 +61,8 @@ describe('PositiveNumber', () => {
         PositiveNumber.create(invalidValue, { fieldName: '가격' }),
       ).toThrow(
         new ValueObjectValidationException({
-          entityName: '가격',
-          reason: '유효한 숫자여야 합니다',
-          errorCode: '가격_INVALID',
+          detail: '유효한 숫자여야 합니다',
+          code: '가격_INVALID',
         }),
       );
     });
@@ -78,9 +74,8 @@ describe('PositiveNumber', () => {
       // when & then
       expect(() => PositiveNumber.create(value, { fieldName: '재고' })).toThrow(
         new ValueObjectValidationException({
-          entityName: '재고',
-          reason: '유효한 숫자여야 합니다',
-          errorCode: '재고_INVALID',
+          detail: '유효한 숫자여야 합니다',
+          code: '재고_INVALID',
         }),
       );
     });
@@ -92,9 +87,8 @@ describe('PositiveNumber', () => {
       // when & then
       expect(() => PositiveNumber.create(value, { fieldName: '재고' })).toThrow(
         new ValueObjectValidationException({
-          entityName: '재고',
-          reason: '음수는 허용되지 않습니다',
-          errorCode: '재고_NEGATIVE',
+          detail: '음수는 허용되지 않습니다',
+          code: '재고_NEGATIVE',
         }),
       );
     });
@@ -111,9 +105,8 @@ describe('PositiveNumber', () => {
         }),
       ).toThrow(
         new ValueObjectValidationException({
-          entityName: '재고',
-          reason: '0은 허용되지 않습니다',
-          errorCode: '재고_ZERO_NOT_ALLOWED',
+          detail: '0은 허용되지 않습니다',
+          code: '재고_ZERO_NOT_ALLOWED',
         }),
       );
     });
@@ -131,9 +124,8 @@ describe('PositiveNumber', () => {
         }),
       ).toThrow(
         new ValueObjectValidationException({
-          entityName: '할인가격',
-          reason: `최대값 ${maxValue}을 초과할 수 없습니다`,
-          errorCode: '할인가격_TOO_LARGE',
+          detail: `최대값 ${maxValue}을 초과할 수 없습니다`,
+          code: '할인가격_TOO_LARGE',
         }),
       );
     });
@@ -150,9 +142,8 @@ describe('PositiveNumber', () => {
         }),
       ).toThrow(
         new ValueObjectValidationException({
-          entityName: '재고',
-          reason: '소수점은 허용되지 않습니다',
-          errorCode: '재고_DECIMAL_NOT_ALLOWED',
+          detail: '소수점은 허용되지 않습니다',
+          code: '재고_DECIMAL_NOT_ALLOWED',
         }),
       );
     });
@@ -166,9 +157,8 @@ describe('PositiveNumber', () => {
         PositiveNumber.create(value, { fieldName: 'discountPrice' }),
       ).toThrow(
         new ValueObjectValidationException({
-          entityName: 'discountPrice',
-          reason: '음수는 허용되지 않습니다',
-          errorCode: 'DISCOUNT_PRICE_NEGATIVE',
+          detail: '음수는 허용되지 않습니다',
+          code: 'DISCOUNT_PRICE_NEGATIVE',
         }),
       );
     });

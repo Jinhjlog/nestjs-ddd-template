@@ -8,13 +8,12 @@ import {
   Query,
 } from '@nestjs/common';
 import {
-  ApiBadRequestResponse,
-  ApiNotFoundResponse,
   ApiOkResponse,
   ApiOperation,
   ApiParam,
   ApiTags,
 } from '@nestjs/swagger';
+import { ApiProblemResponse } from '@shared/swagger';
 import { AdminAuth } from '../../../admin/presentation/decorators/admin-auth.decorator';
 import { FindAdminUserListUseCase } from '../../application/usecases/find-admin-user-list.usecase';
 import { FindAdminUserDetailUseCase } from '../../application/usecases/find-admin-user-detail.usecase';
@@ -57,6 +56,11 @@ export class AdminUserController {
     description: '회원 목록 조회 성공',
     type: AdminUserListResponseDto,
   })
+  @ApiProblemResponse(
+    HttpStatus.BAD_REQUEST,
+    '잘못된 요청 (쿼리 파라미터 검증 실패)<br>' +
+      '- page/limit이 허용 범위·타입을 벗어난 경우: _**VALIDATION_FAILED**_ (errors[])',
+  )
   @HttpCode(HttpStatus.OK)
   @Get()
   async getUserList(
@@ -86,12 +90,14 @@ export class AdminUserController {
     description: '회원 활성화 성공',
     type: AdminUserDetailResponseDto,
   })
-  @ApiNotFoundResponse({
-    description: '회원을 찾을 수 없음: _**USER_NOT_FOUND**_',
-  })
-  @ApiBadRequestResponse({
-    description: '이미 활성화된 사용자: _**USER_ALREADY_ACTIVATED**_',
-  })
+  @ApiProblemResponse(
+    HttpStatus.NOT_FOUND,
+    '회원을 찾을 수 없음: _**USER_NOT_FOUND**_',
+  )
+  @ApiProblemResponse(
+    HttpStatus.UNPROCESSABLE_ENTITY,
+    '이미 활성화된 사용자: _**USER_ALREADY_ACTIVATED**_',
+  )
   @HttpCode(HttpStatus.OK)
   @Patch(':userId/activate')
   async activateUser(
@@ -116,12 +122,14 @@ export class AdminUserController {
     description: '회원 비활성화 성공',
     type: AdminUserDetailResponseDto,
   })
-  @ApiNotFoundResponse({
-    description: '회원을 찾을 수 없음: _**USER_NOT_FOUND**_',
-  })
-  @ApiBadRequestResponse({
-    description: '이미 비활성화된 사용자: _**USER_ALREADY_DEACTIVATED**_',
-  })
+  @ApiProblemResponse(
+    HttpStatus.NOT_FOUND,
+    '회원을 찾을 수 없음: _**USER_NOT_FOUND**_',
+  )
+  @ApiProblemResponse(
+    HttpStatus.UNPROCESSABLE_ENTITY,
+    '이미 비활성화된 사용자: _**USER_ALREADY_DEACTIVATED**_',
+  )
   @HttpCode(HttpStatus.OK)
   @Patch(':userId/deactivate')
   async deactivateUser(
@@ -148,9 +156,10 @@ export class AdminUserController {
     description: '회원 상세 조회 성공',
     type: AdminUserDetailResponseDto,
   })
-  @ApiNotFoundResponse({
-    description: '회원을 찾을 수 없음: _**USER_NOT_FOUND**_',
-  })
+  @ApiProblemResponse(
+    HttpStatus.NOT_FOUND,
+    '회원을 찾을 수 없음: _**USER_NOT_FOUND**_',
+  )
   @HttpCode(HttpStatus.OK)
   @Get(':userId')
   async getUserDetail(

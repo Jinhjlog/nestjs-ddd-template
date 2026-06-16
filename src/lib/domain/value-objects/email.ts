@@ -32,9 +32,8 @@ export class Email extends ValueObject<EmailProps> {
   static create(email: string) {
     if (!this.isValidEmail(email)) {
       throw new ValueObjectValidationException({
-        entityName: Email.name,
-        reason: EmailError.InvalidEmail,
-        errorCode: 'INVALID_EMAIL_FORMAT',
+        detail: EmailError.InvalidEmail,
+        code: 'INVALID_EMAIL_FORMAT',
       });
     }
 

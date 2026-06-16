@@ -69,16 +69,18 @@ NestJS Swagger 데코레이터 작성을 위한 **지식 책**이다. presentati
 {FIELD}_DECIMAL_NOT_ALLOWED   - 소수점 허용 안 됨
 ```
 
-### 도메인 예외 매핑 (예시 — 프로젝트 예외 클래스 조사)
+### 도메인 예외 → HTTP 매핑 (카테고리 기반 — `rules/api-response.md`)
 
-> 예외 클래스명·HTTP 매핑은 프로젝트의 예외 정의를 조사해 따른다. 아래는 _이 레포 예시_.
+> 예외는 `HttpStatus`를 모르고 **`ErrorCategory`만 보유** — 매핑은 예외 필터에서만. 에러 본문은 **RFC 9457 problem+json**(`ProblemDetailsDto`).
 
-| 예외 클래스                      | HTTP 상태 | 용도               |
-| -------------------------------- | --------- | ------------------ |
-| `EntityNotFoundException`        | 404       | 엔티티 조회 실패   |
-| `DuplicateEntityException`       | 409       | 중복 데이터        |
-| `DomainRuleViolationException`   | 400       | 비즈니스 규칙 위반 |
-| `ValueObjectValidationException` | 400       | 필드 검증 실패     |
+| 예외 클래스                                              | 카테고리        | HTTP    |
+| -------------------------------------------------------- | --------------- | ------- |
+| `EntityNotFoundException`                                | NOT_FOUND       | 404     |
+| `DuplicateEntityException` · `ConcurrentUpdateException` | CONFLICT        | 409     |
+| `DomainRuleViolationException`                           | RULE_VIOLATION  | **422** |
+| `ValueObjectValidationException`(VO 단건) · `RequestValidationException`(DTO 다건 `errors[]`) | VALIDATION | 400 |
+| `AuthenticationException`                                | UNAUTHENTICATED | 401     |
+| `AuthorizationException`                                 | FORBIDDEN       | 403     |
 
 ## 데코레이터 작성 규칙
 
@@ -123,22 +125,22 @@ NestJS Swagger 데코레이터 작성을 위한 **지식 책**이다. presentati
 
 ### HTTP 상태별 응답 데코레이터
 
+**성공**은 각 ResponseDto, **에러**는 RFC 9457 problem+json — 본문 스키마는 항상 `ProblemDetailsDto`. 에러는 `@ApiProblemResponse(status, description)`(`@shared/swagger`)를 쓴다(=`type: ProblemDetailsDto` 자동). `description`엔 발생 가능한 `code`를 나열.
+
 ```typescript
-// POST - 생성
-@ApiCreatedResponse({ description: '리소스 생성 성공', type: ResponseDto })
+// 성공
+@ApiCreatedResponse({ description: '리소스 생성 성공', type: ResponseDto }) // POST
+@ApiOkResponse({ description: '요청 성공', type: ResponseDto })            // GET/PATCH
+@ApiNoContentResponse({ description: '리소스 삭제 성공' })                  // DELETE 204
 
-// GET, PATCH - 조회/수정
-@ApiOkResponse({ description: '요청 성공', type: ResponseDto })
-
-// DELETE - 삭제
-@ApiNoContentResponse({ description: '리소스 삭제 성공' })
-
-// 404
-@ApiNotFoundResponse({ description: '리소스를 찾을 수 없음: _**RESOURCE_NOT_FOUND**_' })
-
-// 409
-@ApiConflictResponse({ description: '리소스 충돌: _**NAME_ALREADY_EXISTS**_' })
+// 에러 (problem+json) — ApiProblemResponse 사용
+@ApiProblemResponse(HttpStatus.BAD_REQUEST, '검증 실패: _**VALIDATION_FAILED**_')
+@ApiProblemResponse(HttpStatus.NOT_FOUND, '리소스를 찾을 수 없음: _**RESOURCE_NOT_FOUND**_')
+@ApiProblemResponse(HttpStatus.CONFLICT, '리소스 충돌: _**NAME_ALREADY_EXISTS**_')
+@ApiProblemResponse(HttpStatus.UNPROCESSABLE_ENTITY, '비즈니스 규칙 위반: _**...**_') // 422
 ```
+
+> 위 `@ApiBadRequestResponse` 예시처럼 description으로 **에러 코드를 빠짐없이 문서화**하는 규칙은 그대로 유지하되, **데코레이터는 `@ApiProblemResponse`** 로 통일(본문 = problem+json `ProblemDetailsDto`).
 
 ### @ApiParam
 

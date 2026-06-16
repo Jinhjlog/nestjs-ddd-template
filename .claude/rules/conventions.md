@@ -13,13 +13,15 @@
 
 계약/구현 전 아래를 **조사로 수집**한다 (프로세스 D-0 체크리스트와 동일):
 
-1. **응답 래퍼** 유무 (글로벌 인터셉터로 감싸는지 / DTO 그대로 반환)
+> ⚠️ **응답·에러 형태는 조사 대상이 아니라 `api-response.md`로 고정**이다 (성공=리소스 그대로 / 에러=RFC 9457 `application/problem+json` / 검증=`errors[]` / 예외=카테고리 기반). 아래 1·7번은 그 문서를 따른다.
+
+1. **응답 래퍼** — **없음(리소스 그대로)**, 에러만 problem+json → `api-response.md`
 2. **페이지네이션** 방식 (커서 vs 오프셋) + 공용 DTO/유틸 존재 여부
 3. **ID 타입** (UUID/ULID/…) + 파라미터 파이프 사용 여부
 4. **인증/인가** 데코레이터·가드, 역할 체계, 공개 엔드포인트 선언법
 5. **enum/status 표기** (DB enum 값 대소문자 등) — _값은 조사, 검증은 VO(§2)_
 6. **`@ApiProperty` 스타일** (선택 필드 표기법, enum 표기, 제약 문서화)
-7. **에러 응답 형태 / errorCode** 네이밍 규칙
+7. **에러 응답 형태 / errorCode** — RFC 9457 problem+json + `code`(SCREAMING_SNAKE_CASE) + 카테고리 기반 예외 → `api-response.md`
 8. **네이밍·파일 구조** (controller/dto/transformer 위치, index 배럴, 역할별 분리 여부)
 9. **`@ApiTags`** 네이밍 규칙
 10. **요청 메타(IP 등) 취득 방식** — 단, **`@Ip()` 맹신 금지**: 프록시 환경에서 프록시 IP가 잡힐 수 있으니 그 프로젝트가 `x-forwarded-for` 등을 어떻게 다루는지 조사

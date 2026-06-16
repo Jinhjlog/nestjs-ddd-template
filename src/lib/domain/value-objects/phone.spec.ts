@@ -6,9 +6,8 @@ describe('Phone', () => {
     it('문자가 포함된 전화번호는 예외가 발생합니다', () => {
       expect(() => Phone.create('010123456a')).toThrow(
         new ValueObjectValidationException({
-          entityName: Phone.name,
-          reason: PhoneError.InvalidPhone,
-          errorCode: 'INVALID_PHONE',
+          detail: PhoneError.InvalidPhone,
+          code: 'INVALID_PHONE',
         }),
       );
     });
@@ -16,9 +15,8 @@ describe('Phone', () => {
     it('정규화 후 길이가 부족하면 예외가 발생합니다', () => {
       expect(() => Phone.create('123456789')).toThrow(
         new ValueObjectValidationException({
-          entityName: Phone.name,
-          reason: PhoneError.InvalidPhone,
-          errorCode: 'INVALID_PHONE',
+          detail: PhoneError.InvalidPhone,
+          code: 'INVALID_PHONE',
         }),
       );
     });
@@ -26,9 +24,8 @@ describe('Phone', () => {
     it('정규화 후 길이가 초과하면 예외가 발생합니다', () => {
       expect(() => Phone.create('123456789012')).toThrow(
         new ValueObjectValidationException({
-          entityName: Phone.name,
-          reason: PhoneError.InvalidPhone,
-          errorCode: 'INVALID_PHONE',
+          detail: PhoneError.InvalidPhone,
+          code: 'INVALID_PHONE',
         }),
       );
     });

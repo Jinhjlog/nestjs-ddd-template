@@ -10,9 +10,8 @@ describe('password', () => {
       // when & then
       await expect(Password.create(password)).rejects.toThrow(
         new ValueObjectValidationException({
-          entityName: Password.name,
-          reason: PasswordError.TooShortPassword,
-          errorCode: 'PASSWORD_TOO_SHORT',
+          detail: PasswordError.TooShortPassword,
+          code: 'PASSWORD_TOO_SHORT',
         }),
       );
     });
@@ -24,9 +23,8 @@ describe('password', () => {
       // when & then
       await expect(Password.create(password)).rejects.toThrow(
         new ValueObjectValidationException({
-          entityName: Password.name,
-          reason: PasswordError.TooLongPassword,
-          errorCode: 'PASSWORD_TOO_LONG',
+          detail: PasswordError.TooLongPassword,
+          code: 'PASSWORD_TOO_LONG',
         }),
       );
     });
@@ -38,9 +36,8 @@ describe('password', () => {
       // when & then
       await expect(Password.create(password)).rejects.toThrow(
         new ValueObjectValidationException({
-          entityName: Password.name,
-          reason: PasswordError.MissingSpecialCharacter,
-          errorCode: 'PASSWORD_MISSING_SPECIAL_CHARACTER',
+          detail: PasswordError.MissingSpecialCharacter,
+          code: 'PASSWORD_MISSING_SPECIAL_CHARACTER',
         }),
       );
     });
@@ -111,9 +108,8 @@ describe('password', () => {
         plainPassword.comparePassword(inputPassword),
       ).rejects.toThrow(
         new ValueObjectValidationException({
-          entityName: Password.name,
-          reason: PasswordError.InvalidPasswordComparison,
-          errorCode: 'INVALID_PASSWORD_COMPARISON',
+          detail: PasswordError.InvalidPasswordComparison,
+          code: 'INVALID_PASSWORD_COMPARISON',
         }),
       );
     });
@@ -126,9 +122,8 @@ describe('password', () => {
       // when & then
       await expect(hashedPassword.comparePassword(hashedInput)).rejects.toThrow(
         new ValueObjectValidationException({
-          entityName: Password.name,
-          reason: PasswordError.InvalidPasswordComparison,
-          errorCode: 'INVALID_PASSWORD_COMPARISON',
+          detail: PasswordError.InvalidPasswordComparison,
+          code: 'INVALID_PASSWORD_COMPARISON',
         }),
       );
     });

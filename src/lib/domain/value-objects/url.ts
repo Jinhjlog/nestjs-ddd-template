@@ -48,9 +48,8 @@ export class Url extends ValueObject<UrlProps> {
   static create(value: string): Url {
     if (!this.isValidUrl(value)) {
       throw new ValueObjectValidationException({
-        entityName: Url.name,
-        reason: UrlError.InvalidUrl,
-        errorCode: 'INVALID_URL_FORMAT',
+        detail: UrlError.InvalidUrl,
+        code: 'INVALID_URL_FORMAT',
       });
     }
 

@@ -1,5 +1,8 @@
 /* eslint-disable @typescript-eslint/no-unsafe-argument */
-import { ValueObjectValidationException } from '@shared/exception';
+import {
+  DomainRuleViolationException,
+  ValueObjectValidationException,
+} from '@shared/exception';
 import { Integer } from './integer';
 
 describe('Integer', () => {
@@ -13,9 +16,8 @@ describe('Integer', () => {
         Integer.create(invalidValue as any, { fieldName: '경험치' }),
       ).toThrow(
         new ValueObjectValidationException({
-          entityName: '경험치',
-          reason: '필수 값입니다',
-          errorCode: '경험치_REQUIRED',
+          detail: '필수 값입니다',
+          code: '경험치_REQUIRED',
         }),
       );
     });
@@ -29,9 +31,8 @@ describe('Integer', () => {
         Integer.create(invalidValue as any, { fieldName: '경험치' }),
       ).toThrow(
         new ValueObjectValidationException({
-          entityName: '경험치',
-          reason: '필수 값입니다',
-          errorCode: '경험치_REQUIRED',
+          detail: '필수 값입니다',
+          code: '경험치_REQUIRED',
         }),
       );
     });
@@ -45,9 +46,8 @@ describe('Integer', () => {
         Integer.create(invalidValue as any, { fieldName: '경험치' }),
       ).toThrow(
         new ValueObjectValidationException({
-          entityName: '경험치',
-          reason: '유효한 숫자여야 합니다',
-          errorCode: '경험치_INVALID',
+          detail: '유효한 숫자여야 합니다',
+          code: '경험치_INVALID',
         }),
       );
     });
@@ -61,9 +61,8 @@ describe('Integer', () => {
         Integer.create(invalidValue, { fieldName: '경험치' }),
       ).toThrow(
         new ValueObjectValidationException({
-          entityName: '경험치',
-          reason: '유효한 숫자여야 합니다',
-          errorCode: '경험치_INVALID',
+          detail: '유효한 숫자여야 합니다',
+          code: '경험치_INVALID',
         }),
       );
     });
@@ -75,9 +74,8 @@ describe('Integer', () => {
       // when & then
       expect(() => Integer.create(value, { fieldName: '경험치' })).toThrow(
         new ValueObjectValidationException({
-          entityName: '경험치',
-          reason: '유효한 숫자여야 합니다',
-          errorCode: '경험치_INVALID',
+          detail: '유효한 숫자여야 합니다',
+          code: '경험치_INVALID',
         }),
       );
     });
@@ -89,9 +87,8 @@ describe('Integer', () => {
       // when & then
       expect(() => Integer.create(value, { fieldName: '경험치' })).toThrow(
         new ValueObjectValidationException({
-          entityName: '경험치',
-          reason: '정수여야 합니다',
-          errorCode: '경험치_NOT_INTEGER',
+          detail: '정수여야 합니다',
+          code: '경험치_NOT_INTEGER',
         }),
       );
     });
@@ -109,9 +106,8 @@ describe('Integer', () => {
         }),
       ).toThrow(
         new ValueObjectValidationException({
-          entityName: '경험치',
-          reason: `최소값 ${minValue}보다 작을 수 없습니다`,
-          errorCode: '경험치_TOO_SMALL',
+          detail: `최소값 ${minValue}보다 작을 수 없습니다`,
+          code: '경험치_TOO_SMALL',
         }),
       );
     });
@@ -129,9 +125,8 @@ describe('Integer', () => {
         }),
       ).toThrow(
         new ValueObjectValidationException({
-          entityName: '경험치',
-          reason: `최대값 ${maxValue}을 초과할 수 없습니다`,
-          errorCode: '경험치_TOO_LARGE',
+          detail: `최대값 ${maxValue}을 초과할 수 없습니다`,
+          code: '경험치_TOO_LARGE',
         }),
       );
     });
@@ -145,9 +140,8 @@ describe('Integer', () => {
         Integer.create(value, { fieldName: 'expOnFailure' }),
       ).toThrow(
         new ValueObjectValidationException({
-          entityName: 'expOnFailure',
-          reason: '정수여야 합니다',
-          errorCode: 'EXP_ON_FAILURE_NOT_INTEGER',
+          detail: '정수여야 합니다',
+          code: 'EXP_ON_FAILURE_NOT_INTEGER',
         }),
       );
     });
@@ -331,9 +325,9 @@ describe('Integer', () => {
 
       // when & then
       expect(() => num1.divide(num2)).toThrow(
-        new ValueObjectValidationException({
+        new DomainRuleViolationException({
           entityName: '경험치',
-          reason: '0으로 나눌 수 없습니다',
+          reason: '경험치는 0으로 나눌 수 없습니다',
           errorCode: '경험치_DIVIDE_BY_ZERO',
         }),
       );

@@ -1,8 +1,8 @@
 import { Injectable } from '@nestjs/common';
 import { Email, Password } from '@lib/domain';
 import {
+  AuthenticationException,
   AuthorizationException,
-  DomainAuthenticationException,
 } from '@shared/exception';
 import { UserRepository } from '../../domain/repositories';
 import { UserAuthService } from '../../domain/services';
@@ -26,7 +26,7 @@ export class LoginUseCase {
 
     const user = await this.userRepository.findByEmail(email);
     if (!user) {
-      throw new DomainAuthenticationException({
+      throw new AuthenticationException({
         message: '이메일 또는 비밀번호가 올바르지 않습니다.',
         errorCode: 'INVALID_CREDENTIALS',
       });
@@ -35,7 +35,7 @@ export class LoginUseCase {
     const inputPassword = await Password.create(dto.password, false);
     const isValid = await user.password.comparePassword(inputPassword);
     if (!isValid) {
-      throw new DomainAuthenticationException({
+      throw new AuthenticationException({
         message: '이메일 또는 비밀번호가 올바르지 않습니다.',
         errorCode: 'INVALID_CREDENTIALS',
       });

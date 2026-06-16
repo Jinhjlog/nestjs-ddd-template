@@ -1,5 +1,6 @@
-import { applyDecorators, UseGuards } from '@nestjs/common';
-import { ApiBearerAuth, ApiUnauthorizedResponse } from '@nestjs/swagger';
+import { applyDecorators, HttpStatus, UseGuards } from '@nestjs/common';
+import { ApiBearerAuth } from '@nestjs/swagger';
+import { ApiProblemResponse } from '@shared/swagger';
 import { UserJwtGuard } from '../guards';
 
 /**
@@ -8,7 +9,7 @@ import { UserJwtGuard } from '../guards';
  * 포함 기능:
  * - `@UseGuards(UserJwtGuard)` — JWT 검증 + DB 사용자 조회
  * - `@ApiBearerAuth('access-token')` — Swagger 인증 헤더 표시
- * - `@ApiUnauthorizedResponse` — 401 에러코드 문서화
+ * - `@ApiProblemResponse` — 401 에러(problem+json) 문서화
  *
  * @example
  * // 메서드 레벨
@@ -31,13 +32,13 @@ export function UserAuth(): MethodDecorator & ClassDecorator {
   return applyDecorators(
     UseGuards(UserJwtGuard),
     ApiBearerAuth('access-token'),
-    ApiUnauthorizedResponse({
-      description:
-        '인증 실패 (401)<br>' +
+    ApiProblemResponse(
+      HttpStatus.UNAUTHORIZED,
+      '인증 실패 (401)<br>' +
         '- 액세스 토큰 미제공: _**ACCESS_TOKEN_MISSING**_<br>' +
         '- 액세스 토큰 만료: _**ACCESS_TOKEN_EXPIRED**_<br>' +
         '- 유효하지 않은 액세스 토큰: _**INVALID_ACCESS_TOKEN**_<br>' +
         '- 사용자 미존재 또는 비활성: _**USER_NOT_FOUND_OR_INACTIVE**_<br>',
-    }),
+    ),
   );
 }

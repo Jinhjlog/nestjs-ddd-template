@@ -7,7 +7,7 @@ import {
 import { Request } from 'express';
 import { JwtCoreService } from '@core/jwt/jwt-core.service';
 import { AuthResultStatus } from '@core/jwt/interfaces';
-import { AuthenticationException } from '@shared/exception';
+import { AuthenticationException, InternalException } from '@shared/exception';
 import { USER_JWT } from '../../user-auth.tokens';
 import { UserRepository } from '../../domain/repositories/user.repository';
 import type { AuthenticatedUser } from './authenticated-user';
@@ -37,6 +37,13 @@ export class UserJwtGuard implements CanActivate {
     const result = this.jwtService.verifyAccessToken(token);
 
     if (result.status !== AuthResultStatus.SUCCESS) {
+      // 인프라 오류는 서버측 실패 → 500. 토큰 만료/무효는 인증 실패 → 401.
+      if (result.status === AuthResultStatus.INFRASTRUCTURE_ERROR) {
+        throw new InternalException({
+          message: result.message,
+          errorCode: 'INFRASTRUCTURE_ERROR',
+        });
+      }
       throw new AuthenticationException({
         message: result.message,
         errorCode: result.status,

@@ -13,6 +13,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - `.claude/rules/conventions.md` — 컨벤션 원칙 (조사형·검증=VO·응답 스키마 격리·지역성>DRY)
 - `.claude/rules/validation.md` — 검증=VO 책임 (DTO는 타입 가드만)
 - `.claude/rules/domain.md` — YAGNI·Repository 최소·Mapper·null↔undefined
+- `.claude/rules/api-response.md` — API 응답·에러 표준 (성공=raw·에러=RFC 9457 problem+json·카테고리 예외)
 - `.claude/rules/git-workflow.md` — 브랜치/커밋/PR 규칙 (머지는 사람)
 - `.claude/rules/agents.md` — 서브에이전트 위임 규칙 (G 자동화)
 - `.claude/rules/performance.md` — 모델 선택(Opus/Sonnet)·컨텍스트 관리

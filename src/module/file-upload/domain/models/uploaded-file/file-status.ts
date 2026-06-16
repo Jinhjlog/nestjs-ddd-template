@@ -38,9 +38,8 @@ export class FileStatus extends ValueObject<FileStatusProps> {
   static create(value: string): FileStatus {
     if (!this.VALID_VALUES.includes(value as FileStatusType)) {
       throw new ValueObjectValidationException({
-        entityName: 'FileStatus',
-        reason: `유효하지 않은 파일 상태입니다. 허용된 값: ${this.VALID_VALUES.join(', ')}`,
-        errorCode: 'FILE_STATUS_INVALID',
+        detail: `유효하지 않은 파일 상태입니다. 허용된 값: ${this.VALID_VALUES.join(', ')}`,
+        code: 'FILE_STATUS_INVALID',
       });
     }
     return new FileStatus({ value: value as FileStatusType });

@@ -9,15 +9,13 @@ import {
   Post,
 } from '@nestjs/common';
 import {
-  ApiBadRequestResponse,
-  ApiConflictResponse,
   ApiCreatedResponse,
-  ApiNotFoundResponse,
   ApiOkResponse,
   ApiOperation,
   ApiParam,
   ApiTags,
 } from '@nestjs/swagger';
+import { ApiProblemResponse } from '@shared/swagger';
 import { RequireSuperAdmin } from '../decorators/admin-auth.decorator';
 import { CurrentAdmin } from '../decorators/current-admin.decorator';
 import { FindAdminListUseCase } from '../../application/usecases/find-admin-list.usecase';
@@ -60,9 +58,9 @@ export class AdminController {
     description: '관리자 계정 등록 성공',
     type: AdminDetailResponseDto,
   })
-  @ApiBadRequestResponse({
-    description:
-      '잘못된 요청 (필드 검증 실패 등)<br>' +
+  @ApiProblemResponse(
+    HttpStatus.BAD_REQUEST,
+    '잘못된 요청 (필드 검증 실패 등)<br>' +
       '**로그인 아이디**<br>' +
       '- 로그인 아이디가 비어있는 경우: _**LOGIN_ID_REQUIRED**_<br>' +
       '- 로그인 아이디가 20자를 초과한 경우 (최대 20자): _**LOGIN_ID_TOO_LONG**_<br>' +
@@ -77,14 +75,12 @@ export class AdminController {
       '- 이름이 50자를 초과한 경우 (최대 50자): _**NAME_TOO_LONG**_<br>' +
       '<br>' +
       '**이메일**<br>' +
-      '- 이메일 형식이 올바르지 않은 경우: _**INVALID_EMAIL_FORMAT**_<br>' +
-      '<br>' +
-      '**역할**<br>' +
-      '- 허용되지 않은 역할 값인 경우 (SUPER_ADMIN, ADMIN만 허용): _**ADMIN_ROLE_INVALID**_<br>',
-  })
-  @ApiConflictResponse({
-    description: '이미 사용 중인 loginId: _**ADMIN_LOGIN_ID_DUPLICATE**_',
-  })
+      '- 이메일 형식이 올바르지 않은 경우: _**INVALID_EMAIL_FORMAT**_<br>',
+  )
+  @ApiProblemResponse(
+    HttpStatus.CONFLICT,
+    '이미 사용 중인 loginId: _**ADMIN_LOGIN_ID_DUPLICATE**_',
+  )
   @HttpCode(HttpStatus.CREATED)
   @Post()
   async registerAdmin(
@@ -145,9 +141,10 @@ export class AdminController {
     description: '관리자 계정 단일 조회 성공',
     type: AdminDetailResponseDto,
   })
-  @ApiNotFoundResponse({
-    description: '관리자를 찾을 수 없음: _**ADMIN_NOT_FOUND**_',
-  })
+  @ApiProblemResponse(
+    HttpStatus.NOT_FOUND,
+    '관리자를 찾을 수 없음: _**ADMIN_NOT_FOUND**_',
+  )
   @HttpCode(HttpStatus.OK)
   @Get(':adminId')
   async getAdminDetail(
@@ -183,9 +180,9 @@ export class AdminController {
     description: '관리자 계정 수정 성공',
     type: AdminDetailResponseDto,
   })
-  @ApiBadRequestResponse({
-    description:
-      '잘못된 요청 (필드 검증 실패 등)<br>' +
+  @ApiProblemResponse(
+    HttpStatus.BAD_REQUEST,
+    '잘못된 요청 (필드 검증 실패 등)<br>' +
       '**이름**<br>' +
       '- 이름이 비어있는 경우: _**NAME_REQUIRED**_<br>' +
       '- 이름이 50자를 초과한 경우 (최대 50자): _**NAME_TOO_LONG**_<br>' +
@@ -199,14 +196,17 @@ export class AdminController {
       '**비밀번호**<br>' +
       '- 비밀번호가 8자 미만인 경우: _**PASSWORD_TOO_SHORT**_<br>' +
       '- 비밀번호가 25자를 초과한 경우: _**PASSWORD_TOO_LONG**_<br>' +
-      '- 비밀번호에 특수문자가 없는 경우: _**PASSWORD_MISSING_SPECIAL_CHARACTER**_<br>' +
-      '<br>' +
-      '**활성 상태**<br>' +
-      '- 본인 계정을 비활성화하려는 경우: _**CANNOT_DEACTIVATE_SELF**_<br>',
-  })
-  @ApiNotFoundResponse({
-    description: '관리자를 찾을 수 없음: _**ADMIN_NOT_FOUND**_',
-  })
+      '- 비밀번호에 특수문자가 없는 경우: _**PASSWORD_MISSING_SPECIAL_CHARACTER**_<br>',
+  )
+  @ApiProblemResponse(
+    HttpStatus.NOT_FOUND,
+    '관리자를 찾을 수 없음: _**ADMIN_NOT_FOUND**_',
+  )
+  @ApiProblemResponse(
+    HttpStatus.UNPROCESSABLE_ENTITY,
+    '비즈니스 규칙 위반<br>' +
+      '- 본인 계정을 비활성화하려는 경우: _**CANNOT_DEACTIVATE_SELF**_',
+  )
   @HttpCode(HttpStatus.OK)
   @Patch(':adminId')
   async updateAdmin(

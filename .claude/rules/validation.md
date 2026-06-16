@@ -24,3 +24,10 @@
 
 - enum/길이 검증은 도메인 VO `create()`로 위임. UseCase가 직접 검증 로직 작성 금지.
 - 조회 실패 → 그 프로젝트의 NotFound 예외(예: `EntityNotFoundException`)로 처리 (errorCode 네이밍은 조사).
+
+## 검증 에러 응답 형태 (→ `api-response.md`)
+
+- **요청 바디(DTO) 검증 실패** → `ValidationPipe.exceptionFactory`(`validationExceptionFactory`)가 RFC 9457 `code: VALIDATION_FAILED` + `errors[{ name, code, detail }]` 다건으로 변환. `errors[]`엔 **타입가드 코드만**(`REQUIRED`/`INVALID_TYPE`/`OUT_OF_RANGE`…).
+- **VO 검증 실패**(`ValueObjectValidationException({ code, detail })`) → 구체 `code`(예: `INVALID_EMAIL_FORMAT`) + `detail`. **fail-fast 단건이라 `errors[]` 없음.**
+- ⚠️ **VO 검증은 집계하지 않는다(Notification·수집기·neverthrow 도입 금지).** VO는 throw-단건이 표준 — 첫 위반에서 throw. 여러 필드를 한 번에 모으려 try/catch 수집기를 만들지 말 것(논의 후 기각됨: throw 패턴과 어긋나고, DTO 다건은 이미 class-validator가 배치로 처리). 다건이 필요한 건 DTO 레벨뿐.
+- 예외는 `HttpStatus`를 모르고 `ErrorCategory`만 보유 — HTTP 매핑은 예외 필터에서만. 상세는 `api-response.md`.

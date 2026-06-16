@@ -1,5 +1,8 @@
 import { ValueObject } from '../value-object';
-import { ValueObjectValidationException } from '@shared/exception';
+import {
+  DomainRuleViolationException,
+  ValueObjectValidationException,
+} from '@shared/exception';
 
 interface IntegerProps {
   value: number;
@@ -68,45 +71,40 @@ export class Integer extends ValueObject<IntegerProps> {
     // null/undefined 검증
     if (value === null || value === undefined) {
       throw new ValueObjectValidationException({
-        entityName: inputFieldName,
-        reason: '필수 값입니다',
-        errorCode: `${this.toErrorCode(inputFieldName)}_REQUIRED`,
+        detail: '필수 값입니다',
+        code: `${this.toErrorCode(inputFieldName)}_REQUIRED`,
       });
     }
 
     // 숫자 타입 검증
     if (typeof value !== 'number' || isNaN(value) || !isFinite(value)) {
       throw new ValueObjectValidationException({
-        entityName: inputFieldName,
-        reason: '유효한 숫자여야 합니다',
-        errorCode: `${this.toErrorCode(inputFieldName)}_INVALID`,
+        detail: '유효한 숫자여야 합니다',
+        code: `${this.toErrorCode(inputFieldName)}_INVALID`,
       });
     }
 
     // 정수 검증
     if (!Number.isInteger(value)) {
       throw new ValueObjectValidationException({
-        entityName: inputFieldName,
-        reason: '정수여야 합니다',
-        errorCode: `${this.toErrorCode(inputFieldName)}_NOT_INTEGER`,
+        detail: '정수여야 합니다',
+        code: `${this.toErrorCode(inputFieldName)}_NOT_INTEGER`,
       });
     }
 
     // 최소값 검증
     if (value < minValue) {
       throw new ValueObjectValidationException({
-        entityName: inputFieldName,
-        reason: `최소값 ${minValue}보다 작을 수 없습니다`,
-        errorCode: `${this.toErrorCode(inputFieldName)}_TOO_SMALL`,
+        detail: `최소값 ${minValue}보다 작을 수 없습니다`,
+        code: `${this.toErrorCode(inputFieldName)}_TOO_SMALL`,
       });
     }
 
     // 최대값 검증
     if (value > maxValue) {
       throw new ValueObjectValidationException({
-        entityName: inputFieldName,
-        reason: `최대값 ${maxValue}을 초과할 수 없습니다`,
-        errorCode: `${this.toErrorCode(inputFieldName)}_TOO_LARGE`,
+        detail: `최대값 ${maxValue}을 초과할 수 없습니다`,
+        code: `${this.toErrorCode(inputFieldName)}_TOO_LARGE`,
       });
     }
 
@@ -169,9 +167,9 @@ export class Integer extends ValueObject<IntegerProps> {
    */
   divide(other: Integer): Integer {
     if (other.value === 0) {
-      throw new ValueObjectValidationException({
+      throw new DomainRuleViolationException({
         entityName: this.props.fieldName,
-        reason: '0으로 나눌 수 없습니다',
+        reason: `${this.props.fieldName}는 0으로 나눌 수 없습니다`,
         errorCode: `${Integer.toErrorCode(this.props.fieldName)}_DIVIDE_BY_ZERO`,
       });
     }

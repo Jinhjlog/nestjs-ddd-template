@@ -1,10 +1,6 @@
-import { Controller, Get } from '@nestjs/common';
-import {
-  ApiNotFoundResponse,
-  ApiOkResponse,
-  ApiOperation,
-  ApiTags,
-} from '@nestjs/swagger';
+import { Controller, Get, HttpStatus } from '@nestjs/common';
+import { ApiOkResponse, ApiOperation, ApiTags } from '@nestjs/swagger';
+import { ApiProblemResponse } from '@shared/swagger';
 import { CurrentUser, UserAuth } from '../decorators';
 import { GetMyProfileUseCase } from '../../application/usecases';
 import { MyProfileResponseDto } from '../dtos/response/my-profile.response.dto';
@@ -36,9 +32,10 @@ export class UserController {
     description: '프로필 조회 성공',
     type: MyProfileResponseDto,
   })
-  @ApiNotFoundResponse({
-    description: '사용자를 찾을 수 없음: _**USER_NOT_FOUND**_',
-  })
+  @ApiProblemResponse(
+    HttpStatus.NOT_FOUND,
+    '사용자를 찾을 수 없음: _**USER_NOT_FOUND**_',
+  )
   @Get('me')
   async getMyProfile(
     @CurrentUser('userId') userId: string,
