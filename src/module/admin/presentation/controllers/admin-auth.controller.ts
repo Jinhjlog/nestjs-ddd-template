@@ -25,7 +25,7 @@ import {
 import { AdminLogoutRequestDto } from '../dtos/request/logout.request.dto';
 import { LoginRequestDto } from '../dtos/request/login.request.dto';
 import { AdminRefreshTokenRequestDto } from '../dtos/request/refresh-token.request.dto';
-import { LoginResponseDto } from '../dtos/response/login.response.dto';
+import { AdminTokenResponseDto } from '../dtos/response/admin-token.response.dto';
 import { AdminAuthTransformer } from '../transformers/admin-auth.transformer';
 
 @ApiTags('관리자 - 인증')
@@ -50,7 +50,7 @@ export class AdminAuthController {
   })
   @ApiOkResponse({
     description: '로그인 성공 — 액세스 토큰 + 리프레시 토큰 발급',
-    type: LoginResponseDto,
+    type: AdminTokenResponseDto,
   })
   @ApiBadRequestResponse({
     description:
@@ -78,7 +78,7 @@ export class AdminAuthController {
   async login(
     @Body() dto: LoginRequestDto,
     @Req() req: Request,
-  ): Promise<LoginResponseDto> {
+  ): Promise<AdminTokenResponseDto> {
     const forwarded = req.headers['x-forwarded-for'];
     const ipAddress =
       typeof forwarded === 'string'
@@ -103,7 +103,7 @@ export class AdminAuthController {
   })
   @ApiOkResponse({
     description: '토큰 갱신 성공 — 새 액세스 토큰 + 리프레시 토큰 발급',
-    type: LoginResponseDto,
+    type: AdminTokenResponseDto,
   })
   @ApiUnauthorizedResponse({
     description:
@@ -118,7 +118,7 @@ export class AdminAuthController {
   @Post('refresh')
   async refresh(
     @Body() dto: AdminRefreshTokenRequestDto,
-  ): Promise<LoginResponseDto> {
+  ): Promise<AdminTokenResponseDto> {
     const tokens = await this.adminRefreshTokenUseCase.execute(dto);
     return AdminAuthTransformer.toTokenResponse(tokens);
   }
