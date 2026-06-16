@@ -7,14 +7,13 @@ import {
   Post,
 } from '@nestjs/common';
 import {
-  ApiBadRequestResponse,
   ApiCreatedResponse,
-  ApiNotFoundResponse,
   ApiOkResponse,
   ApiOperation,
   ApiParam,
   ApiTags,
 } from '@nestjs/swagger';
+import { ApiProblemResponse } from '@shared/swagger';
 import { UserAuth } from '../../../user/presentation/decorators/user-auth.decorator';
 import { CurrentUser } from '../../../user/presentation/decorators/current-user.decorator';
 import type { AuthenticatedUser } from '../../../user/presentation/guards';
@@ -55,18 +54,19 @@ export class UserFileUploadController {
     description: 'Presigned URL 발급 성공',
     type: RequestUploadResponseDto,
   })
-  @ApiBadRequestResponse({
-    description:
-      '잘못된 요청<br>' +
-      '**파일명**<br>' +
+  @ApiProblemResponse(
+    HttpStatus.BAD_REQUEST,
+    '잘못된 요청 (파일명 검증)<br>' +
       '- 파일명이 비어있는 경우: _**ORIGINAL_NAME_REQUIRED**_<br>' +
-      '- 파일명이 너무 긴 경우 (최대 255자): _**ORIGINAL_NAME_TOO_LONG**_<br>' +
-      '<br>' +
-      '**용도 / MIME 타입 / 파일 크기**<br>' +
+      '- 파일명이 너무 긴 경우 (최대 255자): _**ORIGINAL_NAME_TOO_LONG**_<br>',
+  )
+  @ApiProblemResponse(
+    HttpStatus.UNPROCESSABLE_ENTITY,
+    '업로드 정책 위반 (용도 / MIME 타입 / 파일 크기)<br>' +
       '- 지원하지 않는 용도: _**UNSUPPORTED_PURPOSE**_<br>' +
       '- 허용되지 않는 MIME 타입: _**MIME_TYPE_NOT_ALLOWED**_<br>' +
       '- 파일 크기 초과: _**FILE_SIZE_EXCEEDED**_<br>',
-  })
+  )
   @HttpCode(HttpStatus.CREATED)
   @Post('upload-url')
   async requestUpload(
@@ -102,16 +102,17 @@ export class UserFileUploadController {
     description: '파일 ID',
     example: '01K8AK2Y81AKXPNZHT3YYVRYPD',
   })
-  @ApiNotFoundResponse({
-    description: '파일을 찾을 수 없음: _**FILE_NOT_FOUND**_',
-  })
-  @ApiBadRequestResponse({
-    description:
-      '잘못된 요청<br>' +
+  @ApiProblemResponse(
+    HttpStatus.NOT_FOUND,
+    '파일을 찾을 수 없음: _**FILE_NOT_FOUND**_',
+  )
+  @ApiProblemResponse(
+    HttpStatus.UNPROCESSABLE_ENTITY,
+    '파일 상태 규칙 위반<br>' +
       '- 스토리지에 파일이 존재하지 않음: _**FILE_NOT_UPLOADED**_<br>' +
       '- 이미 확인된 파일: _**FILE_ALREADY_CONFIRMED**_<br>' +
       '- 업로드 URL 만료: _**FILE_UPLOAD_EXPIRED**_<br>',
-  })
+  )
   @HttpCode(HttpStatus.OK)
   @Post(':fileId/confirm')
   async confirmUpload(

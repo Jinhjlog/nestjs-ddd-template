@@ -9,14 +9,12 @@ import {
 import type { Request } from 'express';
 import { Throttle } from '@nestjs/throttler';
 import {
-  ApiBadRequestResponse,
-  ApiForbiddenResponse,
   ApiNoContentResponse,
   ApiOkResponse,
   ApiOperation,
   ApiTags,
-  ApiUnauthorizedResponse,
 } from '@nestjs/swagger';
+import { ApiProblemResponse } from '@shared/swagger';
 import {
   AdminLoginUseCase,
   AdminLogoutUseCase,
@@ -52,26 +50,27 @@ export class AdminAuthController {
     description: '로그인 성공 — 액세스 토큰 + 리프레시 토큰 발급',
     type: AdminTokenResponseDto,
   })
-  @ApiBadRequestResponse({
-    description:
-      '잘못된 요청 (필드 검증 실패)<br>' +
+  @ApiProblemResponse(
+    HttpStatus.BAD_REQUEST,
+    '잘못된 요청 (필드 검증 실패)<br>' +
       '**로그인 아이디**<br>' +
+      '- 아이디가 비어있는 경우(공백 포함): _**LOGIN_ID_REQUIRED**_<br>' +
       '- 아이디가 20자를 초과하는 경우 (최대 20자): _**LOGIN_ID_TOO_LONG**_<br>' +
       '<br>' +
       '**비밀번호**<br>' +
       '- 비밀번호가 8자 미만인 경우 (최소 8자): _**PASSWORD_TOO_SHORT**_<br>' +
       '- 비밀번호가 25자를 초과하는 경우 (최대 25자): _**PASSWORD_TOO_LONG**_<br>' +
       '- 비밀번호에 특수문자가 포함되지 않은 경우: _**PASSWORD_MISSING_SPECIAL_CHARACTER**_<br>',
-  })
-  @ApiUnauthorizedResponse({
-    description:
-      '인증 실패<br>' +
+  )
+  @ApiProblemResponse(
+    HttpStatus.UNAUTHORIZED,
+    '인증 실패<br>' +
       '- 아이디 또는 비밀번호 불일치: _**INVALID_CREDENTIALS**_',
-  })
-  @ApiForbiddenResponse({
-    description:
-      '접근 거부<br>' + '- 비활성화된 계정: _**ADMIN_ACCOUNT_INACTIVE**_',
-  })
+  )
+  @ApiProblemResponse(
+    HttpStatus.FORBIDDEN,
+    '접근 거부<br>' + '- 비활성화된 계정: _**ADMIN_ACCOUNT_INACTIVE**_',
+  )
   @Throttle({ long: { ttl: 60000, limit: 30 } })
   @HttpCode(HttpStatus.OK)
   @Post('login')
@@ -105,15 +104,15 @@ export class AdminAuthController {
     description: '토큰 갱신 성공 — 새 액세스 토큰 + 리프레시 토큰 발급',
     type: AdminTokenResponseDto,
   })
-  @ApiUnauthorizedResponse({
-    description:
-      '인증 실패<br>' +
+  @ApiProblemResponse(
+    HttpStatus.UNAUTHORIZED,
+    '인증 실패<br>' +
       '- 토큰 형식 오류: _**INVALID_REFRESH_TOKEN_FORMAT**_<br>' +
       '- 토큰 미존재: _**REFRESH_TOKEN_NOT_FOUND**_<br>' +
       '- 토큰 만료: _**REFRESH_TOKEN_EXPIRED**_<br>' +
       '- 유효하지 않은 토큰: _**INVALID_REFRESH_TOKEN**_<br>' +
       '- 관리자 미존재 또는 비활성: _**ADMIN_NOT_FOUND_OR_INACTIVE**_<br>',
-  })
+  )
   @HttpCode(HttpStatus.OK)
   @Post('refresh')
   async refresh(
