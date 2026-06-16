@@ -46,11 +46,7 @@ export class UserQueryServiceImpl implements UserQueryService {
     const { skip, limit, name, isActive } = params;
 
     const records = await this.prisma.user.findMany({
-      where: {
-        deletedAt: null,
-        ...(name && { name: { contains: name } }),
-        ...(isActive !== undefined && { isActive }),
-      },
+      where: this.buildAdminListWhere({ name, isActive }),
       orderBy: [{ createdAt: 'desc' }, { id: 'desc' }],
       skip,
       take: limit,
@@ -70,12 +66,17 @@ export class UserQueryServiceImpl implements UserQueryService {
     const { name, isActive } = params;
 
     return this.prisma.user.count({
-      where: {
-        deletedAt: null,
-        ...(name && { name: { contains: name } }),
-        ...(isActive !== undefined && { isActive }),
-      },
+      where: this.buildAdminListWhere({ name, isActive }),
     });
+  }
+
+  /** 관리자 회원 목록/건수 조회의 WHERE 조건을 공유합니다. */
+  private buildAdminListWhere(filter: { name?: string; isActive?: boolean }) {
+    return {
+      deletedAt: null,
+      ...(filter.name && { name: { contains: filter.name } }),
+      ...(filter.isActive !== undefined && { isActive: filter.isActive }),
+    };
   }
 
   async findAdminDetailById(
