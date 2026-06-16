@@ -1,6 +1,9 @@
 import { Injectable } from '@nestjs/common';
 import { AdminAuthService } from '../../domain/services/admin-auth.service';
-import type { LogoutDto } from '../dtos/logout.dto';
+
+export interface LogoutDto {
+  refreshToken: string;
+}
 
 @Injectable()
 export class AdminLogoutUseCase {

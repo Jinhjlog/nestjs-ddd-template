@@ -7,7 +7,13 @@ import {
   AdminRoleValues,
 } from '../../domain/models/admin/admin-role';
 import { Admin } from '../../domain/models/admin/admin';
-import { RegisterAdminDto } from '../dtos';
+
+export interface RegisterAdminDto {
+  loginId: string;
+  password: string;
+  name: string;
+  email?: string;
+}
 
 @Injectable()
 export class RegisterAdminUseCase {

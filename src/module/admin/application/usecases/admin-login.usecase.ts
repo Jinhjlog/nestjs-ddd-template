@@ -6,8 +6,15 @@ import {
 } from '@shared/exception';
 import { AdminRepository } from '../../domain/repositories/admin.repository';
 import { AdminAuthService } from '../../domain/services/admin-auth.service';
-import type { LoginDto } from '../dtos/login.dto';
-import type { LoginResult } from '../dtos/login.result';
+
+export interface LoginDto {
+  loginId: string;
+  password: string;
+  /** 클라이언트 IP (req.ip 또는 X-Forwarded-For) */
+  ipAddress: string;
+  /** User-Agent 원본 문자열 */
+  userAgent?: string;
+}
 
 @Injectable()
 export class AdminLoginUseCase {
@@ -16,7 +23,9 @@ export class AdminLoginUseCase {
     private readonly adminAuthService: AdminAuthService,
   ) {}
 
-  async execute(dto: LoginDto): Promise<LoginResult> {
+  async execute(
+    dto: LoginDto,
+  ): Promise<{ accessToken: string; refreshToken: string }> {
     const loginId = BoundedString.create(dto.loginId, {
       fieldName: 'loginId',
       maxLength: 20,
