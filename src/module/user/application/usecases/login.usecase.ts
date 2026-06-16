@@ -12,11 +12,6 @@ export interface LoginDto {
   password: string;
 }
 
-export interface LoginResult {
-  accessToken: string;
-  refreshToken: string;
-}
-
 @Injectable()
 export class LoginUseCase {
   constructor(
@@ -24,7 +19,9 @@ export class LoginUseCase {
     private readonly userAuthService: UserAuthService,
   ) {}
 
-  async execute(dto: LoginDto): Promise<LoginResult> {
+  async execute(
+    dto: LoginDto,
+  ): Promise<{ accessToken: string; refreshToken: string }> {
     const email = Email.create(dto.email);
 
     const user = await this.userRepository.findByEmail(email);

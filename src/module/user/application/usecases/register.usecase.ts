@@ -4,8 +4,13 @@ import { DuplicateEntityException } from '@shared/exception';
 import { UserRepository } from '../../domain/repositories';
 import { UserAuthService } from '../../domain/services';
 import { User } from '../../domain/models/user';
-import type { RegisterDto } from '../dtos/register.dto';
-import type { RegisterResult } from '../dtos/register.result';
+
+export interface RegisterDto {
+  email: string;
+  password: string;
+  name?: string;
+  phone?: string;
+}
 
 @Injectable()
 export class RegisterUseCase {
@@ -14,7 +19,9 @@ export class RegisterUseCase {
     private readonly userAuthService: UserAuthService,
   ) {}
 
-  async execute(dto: RegisterDto): Promise<RegisterResult> {
+  async execute(
+    dto: RegisterDto,
+  ): Promise<{ accessToken: string; refreshToken: string }> {
     const email = Email.create(dto.email);
     const password = await Password.create(dto.password, true);
     const name = dto.name

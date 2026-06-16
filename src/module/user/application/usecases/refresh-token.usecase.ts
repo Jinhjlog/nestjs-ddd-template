@@ -1,13 +1,17 @@
 import { Injectable } from '@nestjs/common';
 import { UserAuthService } from '../../domain/services';
-import type { RefreshTokenDto } from '../dtos/refresh-token.dto';
-import type { RefreshTokenResult } from '../dtos/refresh-token.result';
+
+export interface RefreshTokenDto {
+  refreshToken: string;
+}
 
 @Injectable()
 export class RefreshTokenUseCase {
   constructor(private readonly userAuthService: UserAuthService) {}
 
-  async execute(dto: RefreshTokenDto): Promise<RefreshTokenResult> {
+  async execute(
+    dto: RefreshTokenDto,
+  ): Promise<{ accessToken: string; refreshToken: string }> {
     return this.userAuthService.refreshTokens(dto.refreshToken);
   }
 }

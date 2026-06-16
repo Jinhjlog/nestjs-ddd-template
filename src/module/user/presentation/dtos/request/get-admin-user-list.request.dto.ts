@@ -1,21 +1,40 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsBoolean, IsNumber, IsOptional, IsString } from 'class-validator';
+import {
+  IsBoolean,
+  IsNumber,
+  IsOptional,
+  IsString,
+  Max,
+  Min,
+} from 'class-validator';
 import { Transform, Type } from 'class-transformer';
 
 export class GetAdminUserListRequestDto {
-  @ApiProperty({ description: '페이지 번호', example: 1, required: false })
+  @ApiProperty({
+    description: '페이지 번호 (최소 1)',
+    example: 1,
+    required: false,
+    default: 1,
+    minimum: 1,
+  })
   @Type(() => Number)
   @IsNumber()
+  @Min(1)
   @IsOptional()
   page?: number;
 
   @ApiProperty({
-    description: '페이지당 항목 수',
+    description: '페이지당 항목 수 (최소 1, 최대 100)',
     example: 20,
     required: false,
+    default: 20,
+    minimum: 1,
+    maximum: 100,
   })
   @Type(() => Number)
   @IsNumber()
+  @Min(1)
+  @Max(100)
   @IsOptional()
   limit?: number;
 

@@ -15,12 +15,11 @@ import {
   LogoutUseCase,
 } from '../../application/usecases';
 import { UserLoginRequestDto } from '../dtos/request/login.request.dto';
-import { UserLoginResponseDto } from '../dtos/response/login.response.dto';
 import { RefreshTokenRequestDto } from '../dtos/request/refresh-token.request.dto';
-import { RefreshTokenResponseDto } from '../dtos/response/refresh-token.response.dto';
 import { RegisterRequestDto } from '../dtos/request/register.request.dto';
-import { RegisterResponseDto } from '../dtos/response/register.response.dto';
 import { LogoutRequestDto } from '../dtos/request/logout.request.dto';
+import { TokenResponseDto } from '../dtos/response/token.response.dto';
+import { UserAuthTransformer } from '../transformers/user-auth.transformer';
 
 @ApiTags('사용자 인증')
 @Controller({ path: 'user-auth', version: '1' })
@@ -33,42 +32,40 @@ export class UserAuthController {
   ) {}
 
   @ApiOperation({ summary: '로그인' })
-  @ApiOkResponse({ description: '로그인 성공', type: UserLoginResponseDto })
+  @ApiOkResponse({ description: '로그인 성공', type: TokenResponseDto })
   @ApiUnauthorizedResponse({
     description: '인증 실패: _**INVALID_CREDENTIALS**_',
   })
   @HttpCode(HttpStatus.OK)
   @Post('login')
-  async login(@Body() dto: UserLoginRequestDto): Promise<UserLoginResponseDto> {
-    return this.loginUseCase.execute(dto);
+  async login(@Body() dto: UserLoginRequestDto): Promise<TokenResponseDto> {
+    const tokens = await this.loginUseCase.execute(dto);
+    return UserAuthTransformer.toTokenResponse(tokens);
   }
 
   @ApiOperation({ summary: '회원가입' })
-  @ApiOkResponse({ description: '회원가입 성공', type: RegisterResponseDto })
+  @ApiOkResponse({ description: '회원가입 성공', type: TokenResponseDto })
   @ApiConflictResponse({
     description: '이메일 중복: _**EMAIL_ALREADY_EXISTS**_',
   })
   @ApiBadRequestResponse({ description: '잘못된 요청 (필드 검증 실패)' })
   @HttpCode(HttpStatus.OK)
   @Post('register')
-  async register(
-    @Body() dto: RegisterRequestDto,
-  ): Promise<RegisterResponseDto> {
-    return this.registerUseCase.execute(dto);
+  async register(@Body() dto: RegisterRequestDto): Promise<TokenResponseDto> {
+    const tokens = await this.registerUseCase.execute(dto);
+    return UserAuthTransformer.toTokenResponse(tokens);
   }
 
   @ApiOperation({ summary: '토큰 갱신' })
-  @ApiOkResponse({
-    description: '토큰 갱신 성공',
-    type: RefreshTokenResponseDto,
-  })
+  @ApiOkResponse({ description: '토큰 갱신 성공', type: TokenResponseDto })
   @ApiUnauthorizedResponse({ description: '토큰 갱신 실패' })
   @HttpCode(HttpStatus.OK)
   @Post('refresh')
   async refresh(
     @Body() dto: RefreshTokenRequestDto,
-  ): Promise<RefreshTokenResponseDto> {
-    return this.refreshTokenUseCase.execute(dto);
+  ): Promise<TokenResponseDto> {
+    const tokens = await this.refreshTokenUseCase.execute(dto);
+    return UserAuthTransformer.toTokenResponse(tokens);
   }
 
   @ApiOperation({ summary: '로그아웃' })
