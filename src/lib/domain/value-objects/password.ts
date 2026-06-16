@@ -43,25 +43,22 @@ export class Password extends ValueObject<PasswordProps> {
   static async create(password: string, hashed?: boolean): Promise<Password> {
     if (password.length < this.MIN_LENGTH) {
       throw new ValueObjectValidationException({
-        entityName: Password.name,
-        reason: PasswordError.TooShortPassword,
-        errorCode: 'PASSWORD_TOO_SHORT',
+        detail: PasswordError.TooShortPassword,
+        code: 'PASSWORD_TOO_SHORT',
       });
     }
 
     if (password.length > this.MAX_LENGTH) {
       throw new ValueObjectValidationException({
-        entityName: Password.name,
-        reason: PasswordError.TooLongPassword,
-        errorCode: 'PASSWORD_TOO_LONG',
+        detail: PasswordError.TooLongPassword,
+        code: 'PASSWORD_TOO_LONG',
       });
     }
 
     if (!this.SPECIAL_CHAR_REGEX.test(password)) {
       throw new ValueObjectValidationException({
-        entityName: Password.name,
-        reason: PasswordError.MissingSpecialCharacter,
-        errorCode: 'PASSWORD_MISSING_SPECIAL_CHARACTER',
+        detail: PasswordError.MissingSpecialCharacter,
+        code: 'PASSWORD_MISSING_SPECIAL_CHARACTER',
       });
     }
 
@@ -115,18 +112,16 @@ export class Password extends ValueObject<PasswordProps> {
     // 1. this(저장된 비밀번호)는 반드시 해시되어 있어야 함
     if (!this.props.hashed) {
       throw new ValueObjectValidationException({
-        entityName: Password.name,
-        reason: PasswordError.InvalidPasswordComparison,
-        errorCode: 'INVALID_PASSWORD_COMPARISON',
+        detail: PasswordError.InvalidPasswordComparison,
+        code: 'INVALID_PASSWORD_COMPARISON',
       });
     }
 
     // 2. 입력받은 비밀번호는 평문이어야 함 (해시와 해시를 비교하면 안 됨)
     if (plainPassword.props.hashed) {
       throw new ValueObjectValidationException({
-        entityName: Password.name,
-        reason: PasswordError.InvalidPasswordComparison,
-        errorCode: 'INVALID_PASSWORD_COMPARISON',
+        detail: PasswordError.InvalidPasswordComparison,
+        code: 'INVALID_PASSWORD_COMPARISON',
       });
     }
 

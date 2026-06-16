@@ -75,27 +75,24 @@ export class BoundedString extends ValueObject<BoundedStringProps> {
     // 비어있는 경우 검증
     if (!allowEmpty && (!processedValue || processedValue.length === 0)) {
       throw new ValueObjectValidationException({
-        entityName: fieldName,
-        reason: '비어있을 수 없습니다',
-        errorCode: `${this.toErrorCode(fieldName)}_REQUIRED`,
+        detail: '비어있을 수 없습니다',
+        code: `${this.toErrorCode(fieldName)}_REQUIRED`,
       });
     }
 
     // 최소 길이 검증
     if (processedValue && processedValue.length < minLength) {
       throw new ValueObjectValidationException({
-        entityName: fieldName,
-        reason: `최소 ${minLength}자 이상이어야 합니다`,
-        errorCode: `${this.toErrorCode(fieldName)}_TOO_SHORT`,
+        detail: `최소 ${minLength}자 이상이어야 합니다`,
+        code: `${this.toErrorCode(fieldName)}_TOO_SHORT`,
       });
     }
 
     // 최대 길이 검증
     if (processedValue && processedValue.length > maxLength) {
       throw new ValueObjectValidationException({
-        entityName: fieldName,
-        reason: `최대 ${maxLength}자 이내여야 합니다`,
-        errorCode: `${this.toErrorCode(fieldName)}_TOO_LONG`,
+        detail: `최대 ${maxLength}자 이내여야 합니다`,
+        code: `${this.toErrorCode(fieldName)}_TOO_LONG`,
       });
     }
 

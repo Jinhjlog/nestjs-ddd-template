@@ -10,9 +10,8 @@ describe('email', () => {
       // when & then;
       expect(() => Email.create(email)).toThrow(
         new ValueObjectValidationException({
-          entityName: Email.name,
-          reason: EmailError.InvalidEmail,
-          errorCode: 'INVALID_EMAIL_FORMAT',
+          detail: EmailError.InvalidEmail,
+          code: 'INVALID_EMAIL_FORMAT',
         }),
       );
     });

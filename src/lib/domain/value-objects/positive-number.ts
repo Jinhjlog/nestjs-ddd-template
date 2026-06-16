@@ -79,54 +79,48 @@ export class PositiveNumber extends ValueObject<PositiveNumberProps> {
     // null/undefined 검증
     if (value === null || value === undefined) {
       throw new ValueObjectValidationException({
-        entityName: inputFieldName,
-        reason: '필수 값입니다',
-        errorCode: `${this.toErrorCode(inputFieldName)}_REQUIRED`,
+        detail: '필수 값입니다',
+        code: `${this.toErrorCode(inputFieldName)}_REQUIRED`,
       });
     }
 
     // 숫자 타입 검증
     if (typeof value !== 'number' || isNaN(value) || !isFinite(value)) {
       throw new ValueObjectValidationException({
-        entityName: inputFieldName,
-        reason: '유효한 숫자여야 합니다',
-        errorCode: `${this.toErrorCode(inputFieldName)}_INVALID`,
+        detail: '유효한 숫자여야 합니다',
+        code: `${this.toErrorCode(inputFieldName)}_INVALID`,
       });
     }
 
     // 음수 검증
     if (value < 0) {
       throw new ValueObjectValidationException({
-        entityName: inputFieldName,
-        reason: '음수는 허용되지 않습니다',
-        errorCode: `${this.toErrorCode(inputFieldName)}_NEGATIVE`,
+        detail: '음수는 허용되지 않습니다',
+        code: `${this.toErrorCode(inputFieldName)}_NEGATIVE`,
       });
     }
 
     // 0 허용 여부 검증
     if (!allowZero && value === 0) {
       throw new ValueObjectValidationException({
-        entityName: inputFieldName,
-        reason: '0은 허용되지 않습니다',
-        errorCode: `${this.toErrorCode(inputFieldName)}_ZERO_NOT_ALLOWED`,
+        detail: '0은 허용되지 않습니다',
+        code: `${this.toErrorCode(inputFieldName)}_ZERO_NOT_ALLOWED`,
       });
     }
 
     // 최대값 검증
     if (value > maxValue) {
       throw new ValueObjectValidationException({
-        entityName: inputFieldName,
-        reason: `최대값 ${maxValue}을 초과할 수 없습니다`,
-        errorCode: `${this.toErrorCode(inputFieldName)}_TOO_LARGE`,
+        detail: `최대값 ${maxValue}을 초과할 수 없습니다`,
+        code: `${this.toErrorCode(inputFieldName)}_TOO_LARGE`,
       });
     }
 
     // 소수점 허용 여부 검증
     if (!allowDecimal && !Number.isInteger(value)) {
       throw new ValueObjectValidationException({
-        entityName: inputFieldName,
-        reason: '소수점은 허용되지 않습니다',
-        errorCode: `${this.toErrorCode(inputFieldName)}_DECIMAL_NOT_ALLOWED`,
+        detail: '소수점은 허용되지 않습니다',
+        code: `${this.toErrorCode(inputFieldName)}_DECIMAL_NOT_ALLOWED`,
       });
     }
 

@@ -50,9 +50,8 @@ export class Phone extends ValueObject<PhoneProps> {
 
     if (!this.isValidPhone(normalized)) {
       throw new ValueObjectValidationException({
-        entityName: Phone.name,
-        reason: PhoneError.InvalidPhone,
-        errorCode: 'INVALID_PHONE',
+        detail: PhoneError.InvalidPhone,
+        code: 'INVALID_PHONE',
       });
     }
 

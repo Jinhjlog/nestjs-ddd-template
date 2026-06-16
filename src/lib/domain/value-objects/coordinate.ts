@@ -50,18 +50,16 @@ export class Coordinate extends ValueObject<CoordinateProps> {
     // 위도 형식 검증 (소수점 6~8자리)
     if (!this.isValidCoordinateFormat(props.latitude)) {
       throw new ValueObjectValidationException({
-        entityName: 'Coordinate',
-        reason: CoordinateError.INVALID_LATITUDE_FORMAT,
-        errorCode: 'LATITUDE_FORMAT_INVALID',
+        detail: CoordinateError.INVALID_LATITUDE_FORMAT,
+        code: 'LATITUDE_FORMAT_INVALID',
       });
     }
 
     // 경도 형식 검증 (소수점 6~8자리)
     if (!this.isValidCoordinateFormat(props.longitude)) {
       throw new ValueObjectValidationException({
-        entityName: 'Coordinate',
-        reason: CoordinateError.INVALID_LONGITUDE_FORMAT,
-        errorCode: 'LONGITUDE_FORMAT_INVALID',
+        detail: CoordinateError.INVALID_LONGITUDE_FORMAT,
+        code: 'LONGITUDE_FORMAT_INVALID',
       });
     }
 
@@ -72,9 +70,8 @@ export class Coordinate extends ValueObject<CoordinateProps> {
       latitudeValue > this.LATITUDE_MAX
     ) {
       throw new ValueObjectValidationException({
-        entityName: 'Coordinate',
-        reason: CoordinateError.LATITUDE_OUT_OF_RANGE,
-        errorCode: 'LATITUDE_OUT_OF_RANGE',
+        detail: CoordinateError.LATITUDE_OUT_OF_RANGE,
+        code: 'LATITUDE_OUT_OF_RANGE',
       });
     }
 
@@ -85,9 +82,8 @@ export class Coordinate extends ValueObject<CoordinateProps> {
       longitudeValue > this.LONGITUDE_MAX
     ) {
       throw new ValueObjectValidationException({
-        entityName: 'Coordinate',
-        reason: CoordinateError.LONGITUDE_OUT_OF_RANGE,
-        errorCode: 'LONGITUDE_OUT_OF_RANGE',
+        detail: CoordinateError.LONGITUDE_OUT_OF_RANGE,
+        code: 'LONGITUDE_OUT_OF_RANGE',
       });
     }
 

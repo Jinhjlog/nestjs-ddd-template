@@ -10,9 +10,8 @@ describe('Url', () => {
       // when & then
       expect(() => Url.create(invalidUrl)).toThrow(
         new ValueObjectValidationException({
-          entityName: Url.name,
-          reason: UrlError.InvalidUrl,
-          errorCode: 'INVALID_URL_FORMAT',
+          detail: UrlError.InvalidUrl,
+          code: 'INVALID_URL_FORMAT',
         }),
       );
     });
@@ -24,9 +23,8 @@ describe('Url', () => {
       // when & then
       expect(() => Url.create(urlWithoutProtocol)).toThrow(
         new ValueObjectValidationException({
-          entityName: Url.name,
-          reason: UrlError.InvalidUrl,
-          errorCode: 'INVALID_URL_FORMAT',
+          detail: UrlError.InvalidUrl,
+          code: 'INVALID_URL_FORMAT',
         }),
       );
     });
@@ -38,9 +36,8 @@ describe('Url', () => {
       // when & then
       expect(() => Url.create(ftpUrl)).toThrow(
         new ValueObjectValidationException({
-          entityName: Url.name,
-          reason: UrlError.InvalidUrl,
-          errorCode: 'INVALID_URL_FORMAT',
+          detail: UrlError.InvalidUrl,
+          code: 'INVALID_URL_FORMAT',
         }),
       );
     });
@@ -52,9 +49,8 @@ describe('Url', () => {
       // when & then
       expect(() => Url.create(emptyUrl)).toThrow(
         new ValueObjectValidationException({
-          entityName: Url.name,
-          reason: UrlError.InvalidUrl,
-          errorCode: 'INVALID_URL_FORMAT',
+          detail: UrlError.InvalidUrl,
+          code: 'INVALID_URL_FORMAT',
         }),
       );
     });
