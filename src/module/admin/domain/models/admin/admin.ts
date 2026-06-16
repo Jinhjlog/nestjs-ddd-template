@@ -66,20 +66,9 @@ export class Admin extends AggregateRoot<AdminProps> {
     return this.props.deletedAt;
   }
 
-  /** 최고 관리자 여부 확인 */
-  isSuperAdmin(): boolean {
-    return this.props.role.isSuperAdmin();
-  }
-
   /** 마지막 로그인 시각 갱신 */
   updateLastLoginAt(): void {
     this.props.lastLoginAt = new Date();
-    this.props.updatedAt = new Date();
-  }
-
-  /** 계정 비활성화 */
-  deactivate(): void {
-    this.props.isActive = false;
     this.props.updatedAt = new Date();
   }
 

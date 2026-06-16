@@ -24,11 +24,6 @@ export class AdminRole extends ValueObject<AdminRoleProps> {
     return this.props.value;
   }
 
-  /** 최고 관리자 여부 */
-  isSuperAdmin(): boolean {
-    return this.props.value === AdminRoleValues.SUPER_ADMIN;
-  }
-
   static create(value: string): AdminRole {
     if (!this.VALID_VALUES.includes(value as AdminRoleType)) {
       throw new ValueObjectValidationException({
