@@ -41,19 +41,19 @@ export class CategoryLookupServiceImpl implements CategoryLookupService {
 ```typescript
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '@core/database/prisma.service';
-import { PaymentGatewayService, PaymentResult } from '../../domain/services';
+import { PaymentGatewayService, PaymentInfo } from '../../domain/services';
 
 /**
  * PaymentGatewayServiceImpl
  * - Anti-Corruption Layer 역할
  * - 외부 결제 시스템의 데이터를 조회하여
- *   현재 컨텍스트의 언어(PaymentResult)로 번역
+ *   현재 컨텍스트의 언어(PaymentInfo)로 번역
  */
 @Injectable()
 export class PaymentGatewayServiceImpl implements PaymentGatewayService {
   constructor(private readonly prisma: PrismaService) {}
 
-  async findPaymentInfo(paymentId: string): Promise<PaymentResult | undefined> {
+  async findPaymentInfo(paymentId: string): Promise<PaymentInfo | undefined> {
     const raw = await this.prisma.payment.findUnique({
       where: { id: paymentId },
       select: {

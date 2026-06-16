@@ -241,3 +241,75 @@ static create(
 | 독립성       | 독립적 존재 가능       | 부모 Aggregate에 종속 |
 | Repository   | 직접 저장/조회         | 부모를 통해 접근      |
 | Domain Event | 발행 가능              | 발행 불가             |
+
+## 하위 컬렉션 관리 (추가/제거 추적)
+
+Aggregate가 하위 Entity 컬렉션(첨부파일·항목 등)을 가질 때, **제거 의도를 명시적으로 추적**한다.
+이 추적값이 Repository의 삭제 입력이 된다 (`patterns/repository-impl.md` 패턴2의 `removedXxxIds`).
+
+> ⚠️ **`notIn` orphan removal 금지.** Repository에서 `deleteMany({ where: { parentId, NOT: { id: { in: 현재ID들 } } } })` 로 "현재 집합에 없는 것 전부 삭제"하면, **동시 저장 시 다른 요청이 방금 추가한 행을 phantom delete** 한다(stale 스냅샷 기반 삭제). 트랜잭션으로도 못 막는다.
+> → Aggregate가 **제거한 ID만** 추적하고 Repository는 **그 ID만** 삭제한다.
+
+```typescript
+export class Order extends AggregateRoot<OrderProps> {
+  // 이번 변경에서 제거된 하위 Entity ID (DB 삭제 대상)
+  private _removedItemIds: string[] = [];
+  // (선택) 제거된 외부 리소스 키 — 스토리지 파일 등 정리가 필요할 때
+  private _removedStorageKeys: string[] = [];
+
+  private constructor(props: OrderProps) {
+    super(props, new UniqueEntityId(props.id));
+  }
+
+  // getter는 readonly로 노출해 외부에서 배열을 직접 변경하지 못하게 한다
+  get items(): readonly OrderItem[] {
+    return this.props.items;
+  }
+
+  get removedItemIds(): readonly string[] {
+    return this._removedItemIds;
+  }
+
+  get removedStorageKeys(): readonly string[] {
+    return this._removedStorageKeys;
+  }
+
+  /** 영속화 완료 후 추적 상태 초기화 (Repository가 save 성공 후 호출) */
+  clearRemovedItems(): void {
+    this._removedItemIds = [];
+    this._removedStorageKeys = [];
+  }
+
+  /** 항목 추가 (이미 존재하는 ID는 중복 추가하지 않음) */
+  addItems(items: OrderItem[]): void {
+    const fresh = items.filter(
+      (item) => !this.props.items.some((e) => e.id.equals(item.id)),
+    );
+    this.props.items.push(...fresh);
+    this.props.updatedAt = new Date();
+  }
+
+  /** 항목 제거 + 삭제 대상으로 기록 */
+  removeItems(itemIds: string[]): void {
+    const removeSet = new Set(itemIds);
+    this.props.items = this.props.items.filter((item) => {
+      if (!removeSet.has(item.id.toString())) {
+        return true;
+      }
+      this._removedItemIds.push(item.id.toString()); // 삭제 "의도"를 추적
+      if (item.storageKey) {
+        this._removedStorageKeys.push(item.storageKey);
+      }
+      return false;
+    });
+    this.props.updatedAt = new Date();
+  }
+}
+```
+
+### 규칙
+
+- **`this.props.items = newArray` 직접 대입 금지** → 제거 추적이 누락돼 Repository가 삭제하지 못한다. 전체 교체가 필요하면 `removeItems(빠진 것) + addItems(새 것)` 로 표현한다. (현재 집합과 diff하여 제거분을 추적하는 단일 메서드도 가능)
+- 하위 컬렉션 getter는 **`readonly` 배열**로 노출해 메서드를 통하지 않은 변경을 막는다.
+- `clearRemovedXxx()` 는 **트랜잭션 성공 후** 호출한다(롤백 시 추적 보존 → 재시도 안전). 스토리지 정리가 필요한 UseCase는 `save()` **전에** `removedStorageKeys` 를 캡처한다.
+- 추가만 있고 제거가 없는 append-only 컬렉션(예: 로그·댓글)은 제거 추적 없이 `upsert`만 하고 삭제 단계를 두지 않는다.

@@ -130,7 +130,6 @@ Request DTO:
 
 Response DTO:
   src/module/{module}/presentation/dtos/*.response.dto.ts
-  src/module/{module}/application/dtos/*.response.dto.ts
 
 Transformer:
   src/module/{module}/presentation/transformers/*.transformer.ts

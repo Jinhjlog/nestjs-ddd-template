@@ -9,7 +9,6 @@ Transformer는 Domain ReadModel을 Presentation Response DTO로 변환합니다.
 UseCase가 `{ items, totalCount, totalPages, currentPage }` 객체를 반환하는 경우:
 
 ```typescript
-import { NoticeListResult } from '../../application/usecases';
 import { NoticeListReadModel } from '../../domain/models';
 import { NoticeListResponseDto } from '../dtos/response';
 
@@ -29,7 +28,12 @@ export class NoticeTransformer {
     };
   }
 
-  static toListResponse(result: NoticeListResult): NoticeListResponseDto {
+  static toListResponse(result: {
+    items: NoticeListReadModel[];
+    totalCount: number;
+    totalPages: number;
+    currentPage: number;
+  }): NoticeListResponseDto {
     return {
       items: result.items.map((item) => NoticeTransformer.toListItem(item)),
       totalCount: result.totalCount,
@@ -150,7 +154,7 @@ files: readModel.files.map((file) => ({
 | 헬퍼     | 반복 로직은 `private static toListItem()` 헬퍼로 추출              |
 | nullable | `!== undefined ? value : null` 삼항 연산자 필수                    |
 | 배열     | `.map()` 사용                                                      |
-| 입력     | 페이지네이션: UseCase Result 객체 / 단순: ReadModel 배열           |
+| 입력     | 페이지네이션: UseCase 결과 객체(`{ items, … }`) / 단순: ReadModel 배열 |
 | 출력     | Response DTO 타입                                                  |
 
 ## 금지 사항

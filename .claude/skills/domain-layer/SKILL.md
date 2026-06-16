@@ -156,8 +156,10 @@ src/module/{module-name}/domain/
    → Validation 로직 작성
 
 3. **Aggregate Root 수정**
-   - Entity를 관리하는 메서드 추가
-   - 예: `addAttachment()`, `removeAttachment()`
+   - Entity를 관리하는 메서드 추가 (예: `addAttachments()`, `removeAttachments()`)
+   - **제거 추적 필수**: `removeXxx()`는 제거된 ID를 `_removedXxxIds`에 기록하고, `removedXxxIds` getter + `clearRemovedXxxIds()`를 함께 제공한다.
+     - Repository는 이 추적값만 삭제한다(`deleteMany({ id: { in: removed } })`). `props.xxx = newArray` 직접 대입·`notIn` orphan removal **금지**(동시 저장 시 phantom delete).
+     - 상세 패턴: `patterns/aggregate-root.md` "하위 컬렉션 관리 (추가/제거 추적)" 참조.
 
 ---
 
