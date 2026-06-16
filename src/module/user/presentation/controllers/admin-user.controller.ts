@@ -82,7 +82,10 @@ export class AdminUserController {
     description: '활성화할 회원 ID (ULID)',
     example: '01HXK3G5N7MZQR8BVWEY6JKFP4',
   })
-  @ApiOkResponse({ description: '회원 활성화 성공' })
+  @ApiOkResponse({
+    description: '회원 활성화 성공',
+    type: AdminUserDetailResponseDto,
+  })
   @ApiNotFoundResponse({
     description: '회원을 찾을 수 없음: _**USER_NOT_FOUND**_',
   })
@@ -91,8 +94,12 @@ export class AdminUserController {
   })
   @HttpCode(HttpStatus.OK)
   @Patch(':userId/activate')
-  async activateUser(@Param('userId') userId: string): Promise<void> {
+  async activateUser(
+    @Param('userId') userId: string,
+  ): Promise<AdminUserDetailResponseDto> {
     await this.activateUserUseCase.execute(userId);
+    const detail = await this.findAdminUserDetailUseCase.execute(userId);
+    return AdminUserTransformer.toDetailResponse(detail);
   }
 
   @ApiOperation({
@@ -105,7 +112,10 @@ export class AdminUserController {
     description: '비활성화할 회원 ID (ULID)',
     example: '01HXK3G5N7MZQR8BVWEY6JKFP4',
   })
-  @ApiOkResponse({ description: '회원 비활성화 성공' })
+  @ApiOkResponse({
+    description: '회원 비활성화 성공',
+    type: AdminUserDetailResponseDto,
+  })
   @ApiNotFoundResponse({
     description: '회원을 찾을 수 없음: _**USER_NOT_FOUND**_',
   })
@@ -114,8 +124,12 @@ export class AdminUserController {
   })
   @HttpCode(HttpStatus.OK)
   @Patch(':userId/deactivate')
-  async deactivateUser(@Param('userId') userId: string): Promise<void> {
+  async deactivateUser(
+    @Param('userId') userId: string,
+  ): Promise<AdminUserDetailResponseDto> {
     await this.deactivateUserUseCase.execute(userId);
+    const detail = await this.findAdminUserDetailUseCase.execute(userId);
+    return AdminUserTransformer.toDetailResponse(detail);
   }
 
   @ApiOperation({

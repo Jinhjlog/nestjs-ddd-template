@@ -1,4 +1,4 @@
-import { AdminUserListResult } from '../../application/usecases/find-admin-user-list.usecase';
+import { UserAdminListItemReadModel } from '../../domain/models/user/user-admin-list.read-model';
 import {
   AdminUserListResponseDto,
   AdminUserListItemResponseDto,
@@ -7,7 +7,12 @@ import { UserAdminDetailReadModel } from '../../domain/models/user/user-admin-de
 import { AdminUserDetailResponseDto } from '../dtos/response/admin-user-detail.response.dto';
 
 export class AdminUserTransformer {
-  static toListResponse(result: AdminUserListResult): AdminUserListResponseDto {
+  static toListResponse(result: {
+    items: UserAdminListItemReadModel[];
+    totalCount: number;
+    totalPages: number;
+    currentPage: number;
+  }): AdminUserListResponseDto {
     const items: AdminUserListItemResponseDto[] = result.items.map((item) => ({
       id: item.id,
       name: item.name !== undefined ? item.name : null,
