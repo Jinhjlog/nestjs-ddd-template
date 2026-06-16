@@ -1,20 +1,24 @@
 import { Injectable } from '@nestjs/common';
 import { UserQueryService } from '../../domain/services/user-query.service';
 import { UserAdminListItemReadModel } from '../../domain/models/user/user-admin-list.read-model';
-import { FindAdminUserListDto } from '../dtos/find-admin-user-list.dto';
 
-export interface AdminUserListResult {
-  items: UserAdminListItemReadModel[];
-  totalCount: number;
-  totalPages: number;
-  currentPage: number;
+export interface FindAdminUserListDto {
+  name?: string;
+  isActive?: boolean;
+  page: number;
+  limit: number;
 }
 
 @Injectable()
 export class FindAdminUserListUseCase {
   constructor(private readonly userQueryService: UserQueryService) {}
 
-  async execute(dto: FindAdminUserListDto): Promise<AdminUserListResult> {
+  async execute(dto: FindAdminUserListDto): Promise<{
+    items: UserAdminListItemReadModel[];
+    totalCount: number;
+    totalPages: number;
+    currentPage: number;
+  }> {
     const page = dto.page ?? 1;
     const skip = (page - 1) * dto.limit;
 
