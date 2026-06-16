@@ -1,5 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsBoolean, IsOptional, IsString } from 'class-validator';
+import { IsBoolean, IsOptional, IsString, ValidateIf } from 'class-validator';
 export class UpdateAdminRequestDto {
   @ApiProperty({
     type: String,
@@ -18,6 +18,7 @@ export class UpdateAdminRequestDto {
     example: 'admin@example.com',
     required: false,
   })
+  @ValidateIf((_, value) => value !== null)
   @IsString()
   @IsOptional()
   email?: string | null;

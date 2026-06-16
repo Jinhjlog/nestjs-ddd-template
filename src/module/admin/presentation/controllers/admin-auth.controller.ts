@@ -26,6 +26,7 @@ import { AdminLogoutRequestDto } from '../dtos/request/logout.request.dto';
 import { LoginRequestDto } from '../dtos/request/login.request.dto';
 import { AdminRefreshTokenRequestDto } from '../dtos/request/refresh-token.request.dto';
 import { LoginResponseDto } from '../dtos/response/login.response.dto';
+import { AdminAuthTransformer } from '../transformers/admin-auth.transformer';
 
 @ApiTags('관리자 - 인증')
 @Controller({ path: 'admin-auth', version: '1' })
@@ -84,11 +85,12 @@ export class AdminAuthController {
         ? forwarded.split(',')[0].trim()
         : req.ip || '';
 
-    return this.adminLoginUseCase.execute({
+    const tokens = await this.adminLoginUseCase.execute({
       ...dto,
       ipAddress,
       userAgent: req.headers['user-agent'],
     });
+    return AdminAuthTransformer.toTokenResponse(tokens);
   }
 
   @ApiOperation({
@@ -117,7 +119,8 @@ export class AdminAuthController {
   async refresh(
     @Body() dto: AdminRefreshTokenRequestDto,
   ): Promise<LoginResponseDto> {
-    return this.adminRefreshTokenUseCase.execute(dto);
+    const tokens = await this.adminRefreshTokenUseCase.execute(dto);
+    return AdminAuthTransformer.toTokenResponse(tokens);
   }
 
   @ApiOperation({
