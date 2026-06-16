@@ -2,10 +2,7 @@ import { Inject, Injectable, Logger } from '@nestjs/common';
 import { ADMIN_JWT } from '../../admin-auth.tokens';
 import { JwtCoreService } from '@core/jwt/jwt-core.service';
 import { AuthResultStatus } from '@core/jwt/interfaces';
-import {
-  AuthenticationException,
-  DomainAuthenticationException,
-} from '@shared/exception';
+import { AuthenticationException, InternalException } from '@shared/exception';
 import { Admin } from '../models/admin';
 import { AdminRefreshToken } from '../models/admin-refresh-token';
 import { AdminRefreshTokenRepository } from '../repositories/admin-refresh-token.repository';
@@ -36,7 +33,7 @@ export class AdminAuthService {
     const rawToken = token.substring(colonIndex + 1);
 
     if (!tokenId || !rawToken) {
-      throw new DomainAuthenticationException({
+      throw new AuthenticationException({
         message: '리프레시 토큰 형식이 올바르지 않습니다.',
         errorCode: 'INVALID_REFRESH_TOKEN_FORMAT',
       });
@@ -45,7 +42,7 @@ export class AdminAuthService {
     const refreshToken =
       await this.adminRefreshTokenRepository.findById(tokenId);
     if (!refreshToken) {
-      throw new DomainAuthenticationException({
+      throw new AuthenticationException({
         message: '리프레시 토큰을 찾을 수 없습니다.',
         errorCode: 'REFRESH_TOKEN_NOT_FOUND',
       });
@@ -53,7 +50,7 @@ export class AdminAuthService {
 
     if (refreshToken.isExpired()) {
       await this.adminRefreshTokenRepository.deleteByIdIfExists(tokenId);
-      throw new DomainAuthenticationException({
+      throw new AuthenticationException({
         message: '리프레시 토큰이 만료되었습니다.',
         errorCode: 'REFRESH_TOKEN_EXPIRED',
       });
@@ -61,7 +58,7 @@ export class AdminAuthService {
 
     const isValid = await refreshToken.verifyToken(rawToken);
     if (!isValid) {
-      throw new DomainAuthenticationException({
+      throw new AuthenticationException({
         message: '리프레시 토큰이 유효하지 않습니다.',
         errorCode: 'INVALID_REFRESH_TOKEN',
       });
@@ -73,7 +70,7 @@ export class AdminAuthService {
     // 최신 role을 반영하기 위해 DB에서 관리자 조회
     const admin = await this.adminRepository.findById(refreshToken.adminId);
     if (!admin || !admin.isActive) {
-      throw new DomainAuthenticationException({
+      throw new AuthenticationException({
         message: '유효하지 않은 관리자 계정입니다.',
         errorCode: 'ADMIN_NOT_FOUND_OR_INACTIVE',
       });
@@ -101,7 +98,7 @@ export class AdminAuthService {
 
     if (tokenResult.status !== AuthResultStatus.SUCCESS) {
       this.logger.error(`관리자 액세스 토큰 생성 실패: ${tokenResult.message}`);
-      throw new AuthenticationException({
+      throw new InternalException({
         message: '토큰 생성에 실패했습니다.',
         errorCode: 'TOKEN_CREATION_FAILED',
       });

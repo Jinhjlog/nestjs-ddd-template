@@ -2,10 +2,7 @@ import { Inject, Injectable, Logger } from '@nestjs/common';
 import { USER_JWT } from '../../user-auth.tokens';
 import { JwtCoreService } from '@core/jwt/jwt-core.service';
 import { AuthResultStatus } from '@core/jwt/interfaces';
-import {
-  AuthenticationException,
-  DomainAuthenticationException,
-} from '@shared/exception';
+import { AuthenticationException, InternalException } from '@shared/exception';
 import { RefreshToken } from '../models/refresh-token';
 import { RefreshTokenRepository } from '../repositories/refresh-token.repository';
 import { User } from '../models/user';
@@ -34,7 +31,7 @@ export class UserAuthService {
     const rawToken = token.substring(colonIndex + 1);
 
     if (!tokenId || !rawToken) {
-      throw new DomainAuthenticationException({
+      throw new AuthenticationException({
         message: '리프레시 토큰 형식이 올바르지 않습니다.',
         errorCode: 'INVALID_REFRESH_TOKEN_FORMAT',
       });
@@ -42,7 +39,7 @@ export class UserAuthService {
 
     const refreshToken = await this.refreshTokenRepository.findById(tokenId);
     if (!refreshToken) {
-      throw new DomainAuthenticationException({
+      throw new AuthenticationException({
         message: '리프레시 토큰을 찾을 수 없습니다.',
         errorCode: 'REFRESH_TOKEN_NOT_FOUND',
       });
@@ -50,7 +47,7 @@ export class UserAuthService {
 
     if (refreshToken.isExpired()) {
       await this.refreshTokenRepository.deleteById(tokenId);
-      throw new DomainAuthenticationException({
+      throw new AuthenticationException({
         message: '리프레시 토큰이 만료되었습니다.',
         errorCode: 'REFRESH_TOKEN_EXPIRED',
       });
@@ -58,7 +55,7 @@ export class UserAuthService {
 
     const isValid = await refreshToken.verifyToken(rawToken);
     if (!isValid) {
-      throw new DomainAuthenticationException({
+      throw new AuthenticationException({
         message: '리프레시 토큰이 유효하지 않습니다.',
         errorCode: 'INVALID_REFRESH_TOKEN',
       });
@@ -84,7 +81,7 @@ export class UserAuthService {
     const tokenResult = this.jwtService.createAccessToken({ userId });
     if (tokenResult.status !== AuthResultStatus.SUCCESS) {
       this.logger.error(`액세스 토큰 생성 실패: ${tokenResult.message}`);
-      throw new AuthenticationException({
+      throw new InternalException({
         message: '토큰 생성에 실패했습니다.',
         errorCode: 'TOKEN_CREATION_FAILED',
       });

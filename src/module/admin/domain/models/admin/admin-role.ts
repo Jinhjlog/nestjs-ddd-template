@@ -27,9 +27,8 @@ export class AdminRole extends ValueObject<AdminRoleProps> {
   static create(value: string): AdminRole {
     if (!this.VALID_VALUES.includes(value as AdminRoleType)) {
       throw new ValueObjectValidationException({
-        entityName: 'AdminRole',
-        reason: `유효하지 않은 관리자 역할입니다. 허용된 값: ${this.VALID_VALUES.join(', ')}`,
-        errorCode: 'ADMIN_ROLE_INVALID',
+        detail: `유효하지 않은 관리자 역할입니다. 허용된 값: ${this.VALID_VALUES.join(', ')}`,
+        code: 'ADMIN_ROLE_INVALID',
       });
     }
     return new AdminRole({ value: value as AdminRoleType });
