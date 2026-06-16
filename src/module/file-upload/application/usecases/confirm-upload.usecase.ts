@@ -6,7 +6,11 @@ import {
 import { isAutoLinkPurpose } from '../../domain/models/uploaded-file/upload-policy';
 import { UploadedFileRepository } from '../../domain/repositories';
 import { FileStoragePort } from '../ports';
-import { ConfirmUploadDto, ConfirmUploadResult } from '../dtos';
+
+export interface ConfirmUploadDto {
+  /** 파일 ID */
+  fileId: string;
+}
 
 @Injectable()
 export class ConfirmUploadUseCase {
@@ -15,7 +19,9 @@ export class ConfirmUploadUseCase {
     private readonly fileStoragePort: FileStoragePort,
   ) {}
 
-  async execute(dto: ConfirmUploadDto): Promise<ConfirmUploadResult> {
+  async execute(
+    dto: ConfirmUploadDto,
+  ): Promise<{ fileId: string; fileUrl: string }> {
     // 1. 파일 레코드 조회
     const entity = await this.uploadedFileRepository.findById(dto.fileId);
 

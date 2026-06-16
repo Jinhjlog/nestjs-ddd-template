@@ -2,7 +2,6 @@ import { Module, Provider } from '@nestjs/common';
 import { ServeStaticModule } from '@nestjs/serve-static';
 import { join } from 'path';
 import {
-  CleanupOrphanedFilesUseCase,
   ConfirmUploadUseCase,
   RequestUploadUseCase,
 } from './application/usecases';
@@ -12,18 +11,14 @@ import { UploadedFileRepository } from './domain/repositories';
 import { UploadedFileRepositoryImpl } from './infra/repositories';
 import { MockFileStorageAdapter } from './infra/adapters';
 import { UploadedFileAttachmentServiceImpl } from './infra/ohs/uploaded-file-attachment.service.impl';
-import { OrphanedFileCleanupScheduler } from './presentation/schedulers';
+import { OrphanedFileCleanupScheduler } from './infra/schedulers';
 import {
   FileUploadController,
   UserFileUploadController,
   MockUploadController,
 } from './presentation/controllers';
 
-const useCases: Provider[] = [
-  CleanupOrphanedFilesUseCase,
-  ConfirmUploadUseCase,
-  RequestUploadUseCase,
-];
+const useCases: Provider[] = [ConfirmUploadUseCase, RequestUploadUseCase];
 
 @Module({
   imports: [
