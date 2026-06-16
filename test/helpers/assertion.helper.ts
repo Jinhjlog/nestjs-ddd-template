@@ -1,19 +1,22 @@
 import type { Response } from 'supertest';
 
 /**
- * AllExceptionsFilter가 반환하는 에러 응답 구조.
+ * AllExceptionsFilter가 반환하는 RFC 9457 problem+json 에러 응답 구조.
  *
  * @see src/shared/exception/exception.filter.ts
  */
 export interface ErrorResponseBody {
-  statusCode: number;
-  errorCode: string;
-  message: string;
-  timestamp: string;
-  path: string;
-  method: string;
+  type: string;
+  title: string;
+  status: number;
+  detail: string;
+  instance: string;
+  /** 클라 분기키 (SCREAMING_SNAKE_CASE) */
+  code: string;
+  /** 요청 바디(DTO) 검증 실패 시에만 — 필드별 다건 */
+  errors?: { name: string; code: string; detail: string }[];
   requestId: string;
-  errors?: Record<string, string[]>;
+  timestamp: string;
 }
 
 /**
@@ -36,10 +39,10 @@ export function expectError(
   const body = response.body as ErrorResponseBody;
 
   expect(response.status).toBe(expected.statusCode);
-  expect(body.errorCode).toBe(expected.errorCode);
+  expect(body.code).toBe(expected.errorCode);
 
   if (expected.message) {
-    expect(body.message).toBe(expected.message);
+    expect(body.detail).toBe(expected.message);
   }
 }
 

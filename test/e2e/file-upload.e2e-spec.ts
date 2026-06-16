@@ -158,7 +158,7 @@ describe('파일 업로드 (File Upload) E2E', () => {
 
       // Then
       expectError(response, {
-        statusCode: 400,
+        statusCode: 422,
         errorCode: 'UNSUPPORTED_PURPOSE',
       });
     });
@@ -184,7 +184,7 @@ describe('파일 업로드 (File Upload) E2E', () => {
 
       // Then
       expectError(response, {
-        statusCode: 400,
+        statusCode: 422,
         errorCode: 'MIME_TYPE_NOT_ALLOWED',
       });
     });
@@ -210,7 +210,7 @@ describe('파일 업로드 (File Upload) E2E', () => {
 
       // Then
       expectError(response, {
-        statusCode: 400,
+        statusCode: 422,
         errorCode: 'FILE_SIZE_EXCEEDED',
       });
     });
@@ -354,7 +354,7 @@ describe('파일 업로드 (File Upload) E2E', () => {
 
       // Then
       expectError(response, {
-        statusCode: 400,
+        statusCode: 422,
         errorCode: 'FILE_NOT_UPLOADED',
       });
     });
@@ -396,7 +396,7 @@ describe('파일 업로드 (File Upload) E2E', () => {
 
       // Then
       expectError(response, {
-        statusCode: 400,
+        statusCode: 422,
         errorCode: 'FILE_ALREADY_CONFIRMED',
       });
     });
@@ -427,7 +427,7 @@ describe('파일 업로드 (File Upload) E2E', () => {
 
       // Then
       expectError(response, {
-        statusCode: 400,
+        statusCode: 422,
         errorCode: 'FILE_UPLOAD_EXPIRED',
       });
     });

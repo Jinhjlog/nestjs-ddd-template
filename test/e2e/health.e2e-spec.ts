@@ -23,6 +23,8 @@ describe('E2E 테스트 환경 검증', () => {
       .get('/api/v1/non-existent')
       .expect(404);
 
-    expect(response.body).toHaveProperty('statusCode', 404);
+    // RFC 9457 problem+json
+    expect(response.body).toHaveProperty('status', 404);
+    expect(response.body).toHaveProperty('code', 'HTTP_404');
   });
 });

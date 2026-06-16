@@ -6,6 +6,7 @@ import {
 import { Test, TestingModule } from '@nestjs/testing';
 import { App } from 'supertest/types';
 import { AppModule } from '../../src/module/app.module';
+import { validationExceptionFactory } from '../../src/shared/exception';
 
 export async function createTestApp(): Promise<INestApplication<App>> {
   const moduleFixture: TestingModule = await Test.createTestingModule({
@@ -22,6 +23,7 @@ export async function createTestApp(): Promise<INestApplication<App>> {
       whitelist: true,
       forbidNonWhitelisted: true,
       transform: true,
+      exceptionFactory: validationExceptionFactory,
     }),
   );
 
