@@ -75,13 +75,14 @@ export abstract class EnrollmentRepository {
 - **도메인 엔티티 타입** 사용 (Prisma 타입 사용 금지)
 - 반환 타입에서 존재하지 않을 수 있는 경우 **`undefined` 사용** (`null` 아님)
 - Value Object를 파라미터로 받을 수 있음
-- **간결하게 유지** (복잡한 조회는 Query Service로 분리)
+- **간결하게 유지** (복잡한 목록/상세 조회는 Query Service로 분리)
+- **커맨드의 자기 컨텍스트 존재/스코프 확인**(`existsBy...`/`findByIdAndOwner` 등)은 QueryService가 아니라 **여기(Repository)** 에 둔다 — 커맨드는 읽기 측(QueryService)에 의존하지 않는다(CQRS, `rules/domain.md`).
 
 ## Repository vs Query Service
 
 | 구분        | Repository                         | Query Service                                   |
 | ----------- | ---------------------------------- | ----------------------------------------------- |
-| 용도        | 저장, 단일 조회, 삭제              | 복잡한 목록/상세 조회                           |
+| 용도        | 저장, 단일 조회, 존재 확인, 삭제   | 복잡한 목록/상세 조회                           |
 | 반환 타입   | 도메인 엔티티                      | ReadModel                                       |
 | 주요 메서드 | `save()`, `findById()`, `delete()` | `findList()`, `countList()`, `findDetailById()` |
 | 위치        | `domain/repositories/`             | `domain/services/`                              |

@@ -20,13 +20,13 @@ export abstract class PaymentProcessingService {
   abstract processPayment(
     orderId: string,
     amount: number,
-  ): Promise<PaymentResult>;
+  ): Promise<PaymentInfo>;
 
   /** 결제를 취소합니다. */
   abstract cancelPayment(paymentId: string): Promise<void>;
 }
 
-export interface PaymentResult {
+export interface PaymentInfo {
   paymentId: string;
   status: string;
   approvedAt: Date;

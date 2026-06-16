@@ -153,9 +153,11 @@ export abstract class ArticleQueryService {
 }
 ```
 
-## LookupService 패턴: 크로스 컨텍스트 조회
+## LookupService 패턴: 크로스 BC 조회 (cross-BC 전용)
 
-다른 바운디드 컨텍스트의 엔티티 존재 여부를 확인할 때 사용하는 패턴입니다. Domain Service의 abstract class로 정의하고 Infrastructure에서 Prisma 직접 쿼리로 구현합니다:
+**다른 바운디드 컨텍스트**의 엔티티 존재 여부를 확인할 때만 쓰는 패턴입니다. Domain Service의 abstract class로 정의하고 Infrastructure에서 Prisma 직접 쿼리로 구현합니다:
+
+> ⚠️ **같은 BC(같은 모듈) 안의 존재/스코프 확인은 LookupService가 아니라 Repository finder**(`existsBy...`/`findByIdAndOwner`)로 한다. LookupService를 intra-BC에 쓰면 패턴 오용.
 
 ```typescript
 /**
@@ -186,7 +188,7 @@ export abstract class CategoryLookupService {
 - **abstract class** 사용 (NestJS DI 토큰 역할)
 - abstract 메서드만 정의
 - **ReadModel 타입 반환** (도메인 엔티티 아님)
-- 조회 전용 (write 작업 없음)
+- **조회(GET) 전용 — 커맨드(쓰기 유스케이스)는 QueryService에 의존하지 않는다** (자기 컨텍스트 존재/스코프는 Repository finder — §LookupService·`domain.md` 참조). write 작업 없음.
 - **단일 서비스**: 공개/관리자 메서드를 하나의 QueryService에 정의 (별도 클래스 분리 금지)
 - **skip 사용**: QueryService 파라미터는 `skip` (page 금지, page→skip 변환은 UseCase 책임)
 - **CountParams 별도 interface**: `Omit` 타입 사용 금지, 별도 interface로 정의
