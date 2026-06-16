@@ -1,8 +1,8 @@
 import { Injectable } from '@nestjs/common';
 import { BoundedString, Password } from '@lib/domain';
 import {
+  AuthenticationException,
   AuthorizationException,
-  DomainAuthenticationException,
 } from '@shared/exception';
 import { AdminRepository } from '../../domain/repositories/admin.repository';
 import { AdminAuthService } from '../../domain/services/admin-auth.service';
@@ -34,7 +34,7 @@ export class AdminLoginUseCase {
     const admin = await this.adminRepository.findByLoginId(loginId);
 
     if (!admin) {
-      throw new DomainAuthenticationException({
+      throw new AuthenticationException({
         message: '아이디 또는 비밀번호가 올바르지 않습니다.',
         errorCode: 'INVALID_CREDENTIALS',
       });
@@ -43,7 +43,7 @@ export class AdminLoginUseCase {
     const inputPassword = await Password.create(dto.password, false);
     const isPasswordValid = await admin.password.comparePassword(inputPassword);
     if (!isPasswordValid) {
-      throw new DomainAuthenticationException({
+      throw new AuthenticationException({
         message: '아이디 또는 비밀번호가 올바르지 않습니다.',
         errorCode: 'INVALID_CREDENTIALS',
       });
