@@ -4,7 +4,9 @@ import {
   AdminUserListItemResponseDto,
 } from '../dtos/response/admin-user-list.response.dto';
 import { UserAdminDetailReadModel } from '../../domain/models/user/user-admin-detail.read-model';
+import { UserPrimitives } from '../../domain/models/user/user';
 import { AdminUserDetailResponseDto } from '../dtos/response/admin-user-detail.response.dto';
+import { AdminUserCommandResponseDto } from '../dtos/response/admin-user-command.response.dto';
 
 export class AdminUserTransformer {
   static toListResponse(result: {
@@ -30,6 +32,7 @@ export class AdminUserTransformer {
     };
   }
 
+  /** 조회(쿼리) ReadModel → 상세 응답 */
   static toDetailResponse(
     readModel: UserAdminDetailReadModel,
   ): AdminUserDetailResponseDto {
@@ -42,6 +45,27 @@ export class AdminUserTransformer {
       createdAt: readModel.createdAt,
       updatedAt: readModel.updatedAt,
       deletedAt: readModel.deletedAt !== undefined ? readModel.deletedAt : null,
+    };
+  }
+
+  /**
+   * 커맨드(활성/비활성) 결과 Primitives → 커맨드 응답.
+   * 쿼리측 ReadModel·`AdminUserDetailResponseDto`와 **완전 분리**된 전용 타입
+   * (`AdminUserCommandResponseDto`).
+   */
+  static fromPrimitives(
+    primitives: UserPrimitives,
+  ): AdminUserCommandResponseDto {
+    return {
+      id: primitives.id,
+      name: primitives.name !== undefined ? primitives.name : null,
+      email: primitives.email,
+      phone: primitives.phone !== undefined ? primitives.phone : null,
+      isActive: primitives.isActive,
+      createdAt: primitives.createdAt,
+      updatedAt: primitives.updatedAt,
+      deletedAt:
+        primitives.deletedAt !== undefined ? primitives.deletedAt : null,
     };
   }
 }

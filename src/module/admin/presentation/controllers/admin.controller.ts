@@ -24,6 +24,7 @@ import { UpdateAdminUseCase } from '../../application/usecases/update-admin.usec
 import { RegisterAdminUseCase } from '../../application/usecases/register-admin.usecase';
 import { AdminListResponseDto } from '../dtos/response/admin-list.response.dto';
 import { AdminDetailResponseDto } from '../dtos/response/admin-detail.response.dto';
+import { AdminCommandResponseDto } from '../dtos/response/admin-command.response.dto';
 import { UpdateAdminRequestDto } from '../dtos/request/update-admin.request.dto';
 import { RegisterAdminRequestDto } from '../dtos/request/register-admin.request.dto';
 import { AdminTransformer } from '../transformers/admin.transformer';
@@ -56,7 +57,7 @@ export class AdminController {
   })
   @ApiCreatedResponse({
     description: '관리자 계정 등록 성공',
-    type: AdminDetailResponseDto,
+    type: AdminCommandResponseDto,
   })
   @ApiProblemResponse(
     HttpStatus.BAD_REQUEST,
@@ -85,11 +86,10 @@ export class AdminController {
   @Post()
   async registerAdmin(
     @Body() dto: RegisterAdminRequestDto,
-  ): Promise<AdminDetailResponseDto> {
-    const { id } = await this.registerAdminUseCase.execute(dto);
+  ): Promise<AdminCommandResponseDto> {
+    const admin = await this.registerAdminUseCase.execute(dto);
 
-    const detail = await this.findAdminDetailUseCase.execute(id);
-    return AdminTransformer.toDetailResponse(detail);
+    return AdminTransformer.fromPrimitives(admin);
   }
 
   @ApiOperation({
@@ -151,6 +151,7 @@ export class AdminController {
     @Param('adminId') adminId: string,
   ): Promise<AdminDetailResponseDto> {
     const detail = await this.findAdminDetailUseCase.execute(adminId);
+
     return AdminTransformer.toDetailResponse(detail);
   }
 
@@ -178,7 +179,7 @@ export class AdminController {
   })
   @ApiOkResponse({
     description: '관리자 계정 수정 성공',
-    type: AdminDetailResponseDto,
+    type: AdminCommandResponseDto,
   })
   @ApiProblemResponse(
     HttpStatus.BAD_REQUEST,
@@ -213,13 +214,13 @@ export class AdminController {
     @Param('adminId') adminId: string,
     @Body() dto: UpdateAdminRequestDto,
     @CurrentAdmin() requester: AuthenticatedAdmin,
-  ): Promise<AdminDetailResponseDto> {
-    await this.updateAdminUseCase.execute({
+  ): Promise<AdminCommandResponseDto> {
+    const admin = await this.updateAdminUseCase.execute({
       id: adminId,
       requesterId: requester.adminId,
       ...dto,
     });
-    const detail = await this.findAdminDetailUseCase.execute(adminId);
-    return AdminTransformer.toDetailResponse(detail);
+
+    return AdminTransformer.fromPrimitives(admin);
   }
 }
