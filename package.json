@@ -18,6 +18,7 @@
     "test:cov": "jest --coverage",
     "test:debug": "node --inspect-brk -r tsconfig-paths/register -r ts-node/register node_modules/.bin/jest --runInBand",
     "test:e2e": "NODE_OPTIONS='--experimental-vm-modules' NODE_ENV=test jest --config ./test/jest-e2e.json --runInBand --forceExit",
+    "test:int": "NODE_OPTIONS='--experimental-vm-modules' NODE_ENV=test jest --config ./test/jest-int.json --runInBand --forceExit",
     "test:scenarios": "NODE_OPTIONS='--experimental-vm-modules' NODE_ENV=test jest --config ./test/jest-scenario.json --runInBand --forceExit",
     "docker:up:dev": "dotenv -e .env.development -- docker compose -f docker-compose.local.yml up -d",
     "docker:down:dev": "dotenv -e .env.development -- docker compose -f docker-compose.local.yml down",

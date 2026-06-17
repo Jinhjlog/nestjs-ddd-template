@@ -30,18 +30,18 @@
 
 4계층 위에 얹는 통합 패턴은 **필요할 때만** 만든다(대부분 모듈은 `services/`만 사용 — `ports/`·`ohs/`·`adapters/`는 선택).
 
-| 패턴 | 인터페이스 위치 | 구현 위치 | 언제 쓰나 |
-| ---- | --------------- | --------- | --------- |
-| **QueryService** | `domain/services/` | `infra/services/` | 복잡한 목록/상세 조회 (ReadModel 반환) |
-| **LookupService** | `domain/services/` | `infra/services/` | 다른 BC 엔티티 **존재 확인(boolean) / 데이터 읽기·번역** |
-| **Port** | `application/ports/` | `infra/adapters/` | 외부 **기술 추상화** — "다른 기술로 교체 가능한가?" Yes (스토리지·OAuth·메시징 등) |
-| **OHS** (Open Host Service) | `application/ohs/` | `infra/ohs/` | "다른 BC가 이 기능을 쓰는가?" Yes → 공개 API 계약 |
+| 패턴                        | 인터페이스 위치      | 구현 위치         | 언제 쓰나                                                                          |
+| --------------------------- | -------------------- | ----------------- | ---------------------------------------------------------------------------------- |
+| **QueryService**            | `domain/services/`   | `infra/services/` | 복잡한 목록/상세 조회 (ReadModel 반환)                                             |
+| **LookupService**           | `domain/services/`   | `infra/services/` | 다른 BC 엔티티 **존재 확인(boolean) / 데이터 읽기·번역**                           |
+| **Port**                    | `application/ports/` | `infra/adapters/` | 외부 **기술 추상화** — "다른 기술로 교체 가능한가?" Yes (스토리지·OAuth·메시징 등) |
+| **OHS** (Open Host Service) | `application/ohs/`   | `infra/ohs/`      | "다른 BC가 이 기능을 쓰는가?" Yes → 공개 API 계약                                  |
 
 - 선택이 헷갈리면: 외부 **기술**을 갈아끼우는 것 → **Port/Adapter**, 다른 **BC에 기능을 여는 것** → **OHS**, 다른 BC 데이터를 **읽기만** → **LookupService**.
 - 외부 의존(결제·스토리지 등)을 Domain Service abstract class로 둘지 Port로 둘지 헷갈리면 — **"기술 교체 가능성"이 핵심이면 Port**(application/ports), 도메인 규칙·타 BC 조회 성격이면 Domain Service.
-- **명확화**: **외부 시스템/기술과의 통신(결제 게이트웨이·스토리지·OAuth·메시징·이메일 등)은 전부 Port.** Domain Service(abstract)는 **우리 DB로 타 BC를 읽는 LookupService** 또는 **순수 도메인 규칙**에만 쓴다. (같은 "결제"라도 *게이트웨이 호출*=Port, *우리 DB의 결제 데이터 읽기*=LookupService — **외부 통신 여부가 분기점**.)
+- **명확화**: **외부 시스템/기술과의 통신(결제 게이트웨이·스토리지·OAuth·메시징·이메일 등)은 전부 Port.** Domain Service(abstract)는 **우리 DB로 타 BC를 읽는 LookupService** 또는 **순수 도메인 규칙**에만 쓴다. (같은 "결제"라도 _게이트웨이 호출_=Port, _우리 DB의 결제 데이터 읽기_=LookupService — **외부 통신 여부가 분기점**.)
 - **실증 레퍼런스**: `file-upload` 모듈이 Port/Adapter + OHS의 실제 구현. 새로 만들 땐 이 모듈을 조사해 동일 패턴을 따른다(`rules/conventions.md` 조사 원칙).
-- **정책·DIP 규칙**(cross-BC 전용·intra-BC 노출 금지·구현 은닉·오케스트레이션만)은 `conventions.md` §6 참조. (이 테이블은 *배치*, §6은 *정책*)
+- **정책·DIP 규칙**(cross-BC 전용·intra-BC 노출 금지·구현 은닉·오케스트레이션만)은 `conventions.md` §6 참조. (이 테이블은 _배치_, §6은 _정책_)
 
 ## Mapper / null↔undefined
 
@@ -60,6 +60,16 @@
 - 모듈을 쪼개는 건 **독립 배포·독립 스케일링·팀 경계** 같은 구체적 force가 있을 때만. 단순히 "다른 애그리거트라서"는 분리 근거가 아니다.
 - **비동기 잡 워커는 모듈 분리 근거가 아니다.** 별도 배포·독립 스케일링이 아니면 워커(잡 큐 producer/consumer)는 **그 모듈의 infra 서비스**로 둔다. (NestJS·modular-monolith 베스트와 일치)
 - **불변식은 데이터를 소유한 모듈이 강제한다.** 같은 불변식(예: 유일성)을 **소비 모듈에서 중복 체크하지 않는다** — 소유 모듈의 애그리거트/서비스가 throw하게 두고 호출만 한다. (크로스모듈 read를 dedup용으로 중복 두는 것도 금지)
+
+## 트랜잭션 경계 (애그리거트 수정 단위)
+
+- **기본 = 한 트랜잭션에 애그리거트 1개만 수정** (Vernon "modify one aggregate per transaction"). 한 커맨드 UseCase는 보통 `save` **1개**.
+- **여러 애그리거트가 영향받으면 → 결과적 일관성(도메인 이벤트) 우선.** 하나만 수정·저장하고 이벤트 발행 → 핸들러가 **다른 트랜잭션**에서 나머지를 수정. (즉시 일관성이 필수가 아니면 이게 기본)
+- **즉시 일관성이 *그 유스케이스 사용자의 책임*일 때만** 여러 애그리거트를 **한 트랜잭션**으로 묶는다 → **`IUnitOfWork`**(`@lib/domain`, `@InjectUnitOfWork`). 리트머스: "이 작업을 실행하는 사용자가 데이터를 즉시 일관되게 만들 책임이 있는가?" Yes → UoW, No → 이벤트.
+- **repo 여러 개를 UseCase에 주입해 조율하는 것 자체는 위반이 아니다** (application service의 본업). 단 ① 조회·검증은 트랜잭션 밖(fail-fast) ② 비즈니스 로직은 각 애그리거트가 소유(UseCase는 조율만) ③ 애그리거트 간 참조는 ID(FK)로, 객체 그래프 직접 보유 금지 ④ **repo를 애그리거트에 주입 금지**(의존 객체는 호출 전 준비해 인자로).
+- **금지**: 트랜잭션으로 묶지 않은 채 `save` 두 번(부분 실패 시 불일치). 묶으려면 `uow.execute`, 아니면 이벤트.
+- **구현/사용법**: `application-layer/patterns/usecase.md` 패턴 3-B. **동작 원리·동시성(ALS) 격리·함정·검증**: `docs/architecture/unit-of-work.md`.
+- cross-BC는 UoW 대상 아님 — 다른 BC는 LookupService(읽기)·이벤트·OHS로 협력(분산 트랜잭션 만들지 않음).
 
 ## 모듈 등록
 
