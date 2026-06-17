@@ -6,7 +6,7 @@ import {
   AdminRole,
   AdminRoleValues,
 } from '../../domain/models/admin/admin-role';
-import { Admin } from '../../domain/models/admin/admin';
+import { Admin, AdminPrimitives } from '../../domain/models/admin/admin';
 
 export interface RegisterAdminDto {
   loginId: string;
@@ -19,7 +19,7 @@ export interface RegisterAdminDto {
 export class RegisterAdminUseCase {
   constructor(private readonly adminRepository: AdminRepository) {}
 
-  async execute(dto: RegisterAdminDto): Promise<{ id: string }> {
+  async execute(dto: RegisterAdminDto): Promise<AdminPrimitives> {
     // 1. DTO → 도메인 모델 변환 및 검증 (인메모리, DB 호출 전 빠른 실패)
     const loginId = BoundedString.create(dto.loginId, {
       fieldName: 'loginId',
@@ -49,6 +49,7 @@ export class RegisterAdminUseCase {
     // 4. 저장
     await this.adminRepository.save(admin);
 
-    return { id: admin.id.toString() };
+    // 5. 생성 결과 스냅샷 반환 (재조회 없이 애그리거트에서 직접)
+    return admin.toPrimitives();
   }
 }
