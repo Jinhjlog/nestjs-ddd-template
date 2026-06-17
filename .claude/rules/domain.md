@@ -7,6 +7,12 @@
 - VO도 동일: `create`/`unsafeCreate`/getter만. 사용처 없는 헬퍼 미리 만들지 않음.
 - **단계 규율**: 현재 레이어 밖 관심사를 미리 끌어오지 않는다.
 
+## 원시 투영 (`HasPrimitives`) — 옵트인
+
+- 커맨드(생성/수정) 응답을 **재조회 없이 애그리거트에서 직접** 주려면, 그 애그리거트가 **`HasPrimitives<P>`**(`@lib/domain`)를 **implements** 하고 `toPrimitives()`로 **민감필드(password 등) 제외한 원시 표현**을 반환한다. (`api-response.md §8`)
+- **base(`Entity`/`AggregateRoot`)에 abstract로 강제하지 않는다** — ① 모든 모델이 응답 투영을 필요로 하지 않음(YAGNI) ② "충실한 전체 스냅샷" vs "안전한 공개 투영"은 목적이 달라 하나로 강제하면 의미가 어긋남 ③ 큐레이션 누수 표면이 넓어짐. → **필요한 애그리거트만 옵트인.**
+- `XxxPrimitives` 타입은 그 애그리거트 파일에 co-locate. UseCase 반환 타입으로 쓰고, presentation은 **쿼리 ReadModel과 분리된** 전용 변환(`fromPrimitives`)으로 응답 DTO에 매핑.
+
 ## Repository (도메인 인터페이스)
 
 - 도메인엔 **인터페이스(추상)** 만, 구현은 인프라에. (NestJS면 DI 토큰용 `abstract class` — 프레임워크 관례는 조사)
@@ -27,12 +33,13 @@
 | 패턴 | 인터페이스 위치 | 구현 위치 | 언제 쓰나 |
 | ---- | --------------- | --------- | --------- |
 | **QueryService** | `domain/services/` | `infra/services/` | 복잡한 목록/상세 조회 (ReadModel 반환) |
-| **LookupService** | `domain/services/` | `infra/services/` | 다른 BC 엔티티 **존재 확인 / 읽기**(ACL) |
+| **LookupService** | `domain/services/` | `infra/services/` | 다른 BC 엔티티 **존재 확인(boolean) / 데이터 읽기·번역** |
 | **Port** | `application/ports/` | `infra/adapters/` | 외부 **기술 추상화** — "다른 기술로 교체 가능한가?" Yes (스토리지·OAuth·메시징 등) |
 | **OHS** (Open Host Service) | `application/ohs/` | `infra/ohs/` | "다른 BC가 이 기능을 쓰는가?" Yes → 공개 API 계약 |
 
 - 선택이 헷갈리면: 외부 **기술**을 갈아끼우는 것 → **Port/Adapter**, 다른 **BC에 기능을 여는 것** → **OHS**, 다른 BC 데이터를 **읽기만** → **LookupService**.
 - 외부 의존(결제·스토리지 등)을 Domain Service abstract class로 둘지 Port로 둘지 헷갈리면 — **"기술 교체 가능성"이 핵심이면 Port**(application/ports), 도메인 규칙·타 BC 조회 성격이면 Domain Service.
+- **명확화**: **외부 시스템/기술과의 통신(결제 게이트웨이·스토리지·OAuth·메시징·이메일 등)은 전부 Port.** Domain Service(abstract)는 **우리 DB로 타 BC를 읽는 LookupService** 또는 **순수 도메인 규칙**에만 쓴다. (같은 "결제"라도 *게이트웨이 호출*=Port, *우리 DB의 결제 데이터 읽기*=LookupService — **외부 통신 여부가 분기점**.)
 - **실증 레퍼런스**: `file-upload` 모듈이 Port/Adapter + OHS의 실제 구현. 새로 만들 땐 이 모듈을 조사해 동일 패턴을 따른다(`rules/conventions.md` 조사 원칙).
 - **정책·DIP 규칙**(cross-BC 전용·intra-BC 노출 금지·구현 은닉·오케스트레이션만)은 `conventions.md` §6 참조. (이 테이블은 *배치*, §6은 *정책*)
 

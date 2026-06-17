@@ -2,7 +2,9 @@
 
 > ⚠️ 페이지네이션 예시(`totalCount`/`totalPages`)는 오프셋 기준. 커서 방식이면 그에 맞춤 — **방식은 조사**. `undefined → null`은 삼항(`??` 금지).
 
-Transformer는 Domain ReadModel을 Presentation Response DTO로 변환합니다.
+Transformer는 도메인 데이터를 Presentation Response DTO로 변환합니다. 입력은 **두 종류**이며 **메서드를 분리**한다:
+- **쿼리(조회)**: QueryService의 **ReadModel** → `toListResponse`/`toDetailResponse`
+- **커맨드(생성/수정)**: 애그리거트 `toPrimitives()`의 **`XxxPrimitives`** → **`fromPrimitives`** (`api-response.md §8`)
 
 ## 페이지네이션 목록 변환
 
@@ -119,6 +121,29 @@ static toDetailResponse(
 }
 ```
 
+## 커맨드 결과 변환 (`fromPrimitives`)
+
+생성/수정 UseCase가 반환한 **`XxxPrimitives`**(애그리거트 `toPrimitives()`, 재조회 X)를 응답 DTO로 변환한다. **쿼리측 `toDetailResponse(ReadModel)`과 분리된 별도 메서드 + 별도 반환 타입** — 메서드뿐 아니라 **DTO 클래스까지 분리**한다. 커맨드는 전용 `XxxCommandResponseDto`(출처 = Primitives), 쿼리 상세는 `XxxDetailResponseDto`(출처 = ReadModel). **모양이 같아도 같은 클래스/공통 Base를 쓰지 않는다**(`api-response.md §8`·`conventions.md §3`).
+
+```typescript
+import { NoticePrimitives } from '../../domain/models/notice/notice';
+import { NoticeCommandResponseDto } from '../dtos/response/notice-command.response.dto';
+
+/** 커맨드(생성/수정) 결과 Primitives → 커맨드 응답 (쿼리 DetailResponseDto와 완전 분리) */
+static fromPrimitives(primitives: NoticePrimitives): NoticeCommandResponseDto {
+  return {
+    id: primitives.id,
+    title: primitives.title,
+    content: primitives.content,
+    // ... undefined → null 삼항 동일 적용
+    createdAt: primitives.createdAt,
+    updatedAt: primitives.updatedAt,
+  };
+}
+```
+
+> ⚠️ **커맨드 응답에 `XxxDetailResponseDto`(쿼리용)를 반환 타입으로 쓰지 않는다.** 구조적 타이핑으로 통과해도 출처가 섞이면, 쿼리 상세가 JOIN/계산 필드로 발산할 때 커맨드 투영(`toPrimitives`)이 그 필드를 못 채워 깨진다. 처음부터 **`XxxCommandResponseDto` 독립 클래스**로 받는다.
+
 ---
 
 ## nullable 변환 규칙
@@ -150,7 +175,7 @@ files: readModel.files.map((file) => ({
 | 항목     | 규칙                                                               |
 | -------- | ------------------------------------------------------------------ |
 | 메서드   | `static` 메서드만 사용 (인스턴스 없음)                             |
-| 네이밍   | `toListResponse()`, `toDetailResponse()`, `toActiveListResponse()` |
+| 네이밍   | 쿼리: `toListResponse()`/`toDetailResponse()`→`Xxx(List/Detail)ResponseDto` · 커맨드: `fromPrimitives()`→**`XxxCommandResponseDto`** — 메서드·반환 타입 **모두 분리** |
 | 헬퍼     | 반복 로직은 `private static toListItem()` 헬퍼로 추출              |
 | nullable | `!== undefined ? value : null` 삼항 연산자 필수                    |
 | 배열     | `.map()` 사용                                                      |

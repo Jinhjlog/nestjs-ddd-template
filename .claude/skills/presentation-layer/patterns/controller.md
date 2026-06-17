@@ -15,14 +15,8 @@ import {
   Param,
   Query,
 } from '@nestjs/common';
-import {
-  ApiOkResponse,
-  ApiOperation,
-  ApiNotFoundResponse,
-  ApiParam,
-  ApiTags,
-  ApiBadRequestResponse,
-} from '@nestjs/swagger';
+import { ApiOkResponse, ApiOperation, ApiParam, ApiTags } from '@nestjs/swagger';
+import { ApiProblemResponse } from '@shared/swagger';
 
 @ApiTags('공지사항')
 @Controller({ path: 'notices', version: '1' })
@@ -45,11 +39,11 @@ export class NoticeController {
       '- limit: 페이지당 건수 (기본값 20, 최대 50)<br>',
   })
   @ApiOkResponse({ description: '목록 조회 성공', type: NoticeListResponseDto })
-  @ApiBadRequestResponse({
-    description:
-      '잘못된 요청<br>' +
+  @ApiProblemResponse(
+    HttpStatus.BAD_REQUEST,
+    '잘못된 요청<br>' +
       '- 검색 키워드가 너무 긴 경우 (최대 300자): _**KEYWORD_TOO_LONG**_<br>',
-  })
+  )
   @HttpCode(HttpStatus.OK)
   @Get()
   async getNoticeList(
@@ -78,9 +72,10 @@ export class NoticeController {
     description: '상세 조회 성공',
     type: NoticeDetailResponseDto,
   })
-  @ApiNotFoundResponse({
-    description: '공지사항을 찾을 수 없음: _**NOTICE_NOT_FOUND**_',
-  })
+  @ApiProblemResponse(
+    HttpStatus.NOT_FOUND,
+    '공지사항을 찾을 수 없음: _**NOTICE_NOT_FOUND**_',
+  )
   @HttpCode(HttpStatus.OK)
   @Get(':noticeId')
   async getNoticeDetail(
@@ -115,15 +110,14 @@ import {
   Query,
 } from '@nestjs/common';
 import {
-  ApiBadRequestResponse,
   ApiCreatedResponse,
   ApiNoContentResponse,
-  ApiNotFoundResponse,
   ApiOkResponse,
   ApiOperation,
   ApiParam,
   ApiTags,
 } from '@nestjs/swagger';
+import { ApiProblemResponse } from '@shared/swagger';
 import { AdminAuth } from '../../../admin/presentation/decorators/admin-auth.decorator';
 import { CurrentAdmin } from '../../../admin/presentation/decorators/current-admin.decorator';
 import type { AuthenticatedAdmin } from '../../../admin/presentation/guards';
@@ -164,21 +158,21 @@ export class AdminNoticeController {
     return AdminNoticeTransformer.toDetailResponse(detail);
   }
 
-  // POST — 생성
+  // POST — 생성 (커맨드 응답 = XxxCommandResponseDto, 쿼리 DetailResponseDto와 분리)
   @HttpCode(HttpStatus.CREATED)
   @Post()
   async createNotice(
     @Body() dto: CreateNoticeRequestDto,
     @CurrentAdmin() admin: AuthenticatedAdmin,
-  ): Promise<AdminNoticeDetailResponseDto> {
-    const { id } = await this.createNoticeUseCase.execute({
+  ): Promise<AdminNoticeCommandResponseDto> {
+    const notice = await this.createNoticeUseCase.execute({
       title: dto.title,
       content: dto.content,
       authorName: admin.name,
       authorId: admin.adminId,
     });
-    const detail = await this.findAdminNoticeDetailUseCase.execute(id);
-    return AdminNoticeTransformer.toDetailResponse(detail);
+    // 재조회 X — UseCase가 반환한 Primitives를 커맨드 전용 메서드로 매핑
+    return AdminNoticeTransformer.fromPrimitives(notice);
   }
 
   // PATCH — 수정
@@ -187,10 +181,10 @@ export class AdminNoticeController {
   async updateNotice(
     @Param('noticeId') id: string,
     @Body() dto: UpdateNoticeRequestDto,
-  ): Promise<AdminNoticeDetailResponseDto> {
-    await this.updateNoticeUseCase.execute({ id, ...dto });
-    const detail = await this.findAdminNoticeDetailUseCase.execute(id);
-    return AdminNoticeTransformer.toDetailResponse(detail);
+  ): Promise<AdminNoticeCommandResponseDto> {
+    const notice = await this.updateNoticeUseCase.execute({ id, ...dto });
+    // 재조회 X — Primitives → 커맨드 전용 fromPrimitives
+    return AdminNoticeTransformer.fromPrimitives(notice);
   }
 
   // DELETE — 삭제 (Soft Delete)
@@ -216,7 +210,7 @@ export class AdminNoticeController {
 | ID 파라미터        | **ID 타입·파이프는 조사**(UUID면 검증 파이프, ULID면 문자열 등)                               |
 | 클라이언트 IP      | `@Ip()` **지양**(프록시 IP 위험) → `@Req()` + `x-forwarded-for` 우선 파싱(없으면 `req.ip`). 취득 방식은 기존 코드 조사 |
 | 목록 조회          | `@Query() dto` 사용. 페이지네이션 방식(커서/오프셋)·기본값은 조사                              |
-| 수정/생성 응답     | command UseCase 실행 → **find-detail로 재조회** → Transformer로 디테일 반환 (비회원 생성만 최소응답) |
+| 수정/생성 응답     | command UseCase가 반환한 **`XxxPrimitives`(애그리거트 `toPrimitives()`, 재조회 X)** → Transformer **`fromPrimitives`** → **`XxxCommandResponseDto`**(쿼리 `XxxDetailResponseDto`와 **완전 분리**, 공유·상속 금지) (`api-response.md §8`) |
 | 응답 변환          | 반드시 Transformer 사용 — 인라인 맵핑 금지                                                    |
 | HttpCode           | GET: OK, POST: CREATED, PATCH: OK, DELETE: NO_CONTENT                                         |
 

@@ -59,7 +59,7 @@
 > **cross-BC 모듈 간**에 기능을 동기로 제공/소비할 때의 표준. (NestJS·modular-monolith 베스트와 일치)
 
 - **BC는 모듈 1개가 기본**(`aggregate ≠ module`, `domain.md`). 같은 BC 안에서 "노출 서비스/룩업 글루"가 필요해 보이면 그건 **모듈을 합치라는 신호** — intra-BC 모듈 간 노출은 두지 않는다.
-- **노출 서비스·LookupService·OHS(Open Host Service)·Published Language·ACL 격식은 모두 BC _간_ 전용.** intra-BC엔 쓰지 않는다.
+- **노출 서비스·LookupService·OHS(Open Host Service)·Published Language 격식은 모두 BC _간_ 전용.** intra-BC엔 쓰지 않는다.
 - **디렉터리 배치**: 노출 서비스 추상=`application/ohs/`, 소비 아웃바운드 포트=`application/ports/*.port.ts`, 구현은 `infra/`. (패턴별 인터페이스/구현 위치 전체는 `domain.md` "통합 패턴 선택" 테이블 참조)
 - **노출/소비 추상의 NestJS 표준 모양** (DIP):
   - 계약 = **추상 클래스** (TS 인터페이스는 런타임 소거 → DI 토큰 불가).

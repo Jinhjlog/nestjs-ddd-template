@@ -36,7 +36,7 @@ NestJS Swagger 데코레이터 작성을 위한 **지식 책**이다. presentati
 
 ### 4단계: 데코레이터 작성
 
-`@ApiOperation`, `@ApiBadRequestResponse`, 응답 데코레이터, `@ApiParam` 순으로 작성합니다.
+`@ApiOperation`, 성공 응답 데코레이터, `@ApiProblemResponse(각 에러 상태)`, `@ApiParam` 순으로 작성합니다. (에러는 상태별 `@ApiNotFoundResponse`/`@ApiBadRequestResponse` 직접 사용 X — `@ApiProblemResponse`로 통일)
 
 ### 5단계: 검증
 
@@ -81,6 +81,8 @@ NestJS Swagger 데코레이터 작성을 위한 **지식 책**이다. presentati
 | `ValueObjectValidationException`(VO 단건) · `RequestValidationException`(DTO 다건 `errors[]`) | VALIDATION | 400 |
 | `AuthenticationException`                                | UNAUTHENTICATED | 401     |
 | `AuthorizationException`                                 | FORBIDDEN       | 403     |
+| `InternalException`(서버측 실패 — 토큰 서명·인프라 오류) | INTERNAL        | 500     |
+| (외부 의존 불가)                                         | UNAVAILABLE     | 503     |
 
 ## 데코레이터 작성 규칙
 
@@ -88,7 +90,7 @@ NestJS Swagger 데코레이터 작성을 위한 **지식 책**이다. presentati
 
 ```typescript
 @ApiOperation({
-  summary: '기능명 [역할] (YYYY-MM-DD)',
+  summary: '기능명 [역할]', // 역할 없으면 '기능명' — 날짜 미표기(기존 컨트롤러 관례, 조사 우선)
   description:
     '기능 설명<br><br>' +
     '**필수 항목**<br>' +
@@ -104,18 +106,18 @@ NestJS Swagger 데코레이터 작성을 위한 **지식 책**이다. presentati
 - 필수/선택 항목을 명확히 구분
 - 비즈니스 규칙을 간결하게 설명
 
-### @ApiBadRequestResponse
+### 에러 응답 description 작성 (데코레이터 = `@ApiProblemResponse`)
 
 ```typescript
-@ApiBadRequestResponse({
-  description:
-    '잘못된 요청 (필드 검증 실패 등)<br>' +
+@ApiProblemResponse(
+  HttpStatus.BAD_REQUEST,
+  '잘못된 요청 (필드 검증 실패 등)<br>' +
     '**필드명**<br>' +
     '- 에러 상황 설명 (제약 조건): _**ERROR_CODE**_<br>' +
     '<br>' +
     '**다른 필드명**<br>' +
     '- 에러 상황 설명: _**ERROR_CODE**_<br>',
-})
+)
 ```
 
 - 유즈케이스의 모든 검증 로직을 빠짐없이 반영
@@ -140,7 +142,7 @@ NestJS Swagger 데코레이터 작성을 위한 **지식 책**이다. presentati
 @ApiProblemResponse(HttpStatus.UNPROCESSABLE_ENTITY, '비즈니스 규칙 위반: _**...**_') // 422
 ```
 
-> 위 `@ApiBadRequestResponse` 예시처럼 description으로 **에러 코드를 빠짐없이 문서화**하는 규칙은 그대로 유지하되, **데코레이터는 `@ApiProblemResponse`** 로 통일(본문 = problem+json `ProblemDetailsDto`).
+> 위 예시처럼 **description으로 에러 코드를 빠짐없이 문서화**한다. 데코레이터는 항상 **`@ApiProblemResponse`**(본문 = problem+json `ProblemDetailsDto`) — 상태별 `@ApiNotFoundResponse`/`@ApiBadRequestResponse` 직접 사용 금지.
 
 ### @ApiParam
 

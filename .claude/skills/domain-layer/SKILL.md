@@ -8,7 +8,7 @@ user-invocable: true
 # Domain Layer 구현 스킬
 
 > **범용 패턴(책).** 특정 값을 고정하지 않는다 — VO 라이브러리·null/undefined 관례·ORM 등은 **기존 코드 조사**로 따른다(`rules/conventions.md`).
-> **반드시 `.claude/rules/` 준수**: `domain.md`(YAGNI — Aggregate는 `create`/`unsafeCreate`+getter만, 행위 메서드는 필요 시점에 / Repository 최소), `validation.md`(검증=VO, enum/길이/형식은 VO에서).
+> **반드시 `.claude/rules/` 준수**: `domain.md`(YAGNI — Aggregate는 `create`/`unsafeCreate`+getter만, 행위 메서드는 필요 시점에 / Repository 최소 / **커맨드 응답용 원시투영은 `HasPrimitives<P>` 옵트인 `toPrimitives()`** — base 강제 X), `validation.md`(검증=VO, enum/길이/형식은 VO에서).
 
 ## ⚠️ IMPORTANT: Claude 자동 실행 지시사항
 

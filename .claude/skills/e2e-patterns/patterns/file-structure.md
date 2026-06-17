@@ -26,7 +26,7 @@ import {
   seedNotice,
   seedNoticeCategory,
   seedUploadedFile,
-} from '../helpers/seed.helper';
+} from '../helpers/seed';
 
 // 기타 유틸 (필요시)
 import { ulid } from 'ulid';
@@ -226,7 +226,7 @@ describe('공지사항 (Notice) E2E', () => {
 1) 외부 라이브러리 (@nestjs, supertest 등)
 2) 내부 모듈 (ORM 서비스, 기타 앱 내부 모듈)
 3) 테스트 헬퍼 (test-app, db-cleanup, assertion)
-4) Seed 함수 (seed.helper 배럴에서 import)
+4) Seed 함수 (`../helpers/seed` 배럴에서 import)
 5) 기타 유틸 (ulid 등 - 필요시)
 ```
 

@@ -197,6 +197,22 @@ export class AdminNoticeDetailResponseDto {
 
 ---
 
+## 커맨드 응답 DTO (쿼리와 완전 분리)
+
+커맨드(생성/수정/상태변경) 응답은 **쿼리 응답 DTO와 별도 클래스**로 둔다 — `XxxCommandResponseDto`(출처 = 애그리거트 `toPrimitives()`). 쿼리 상세 `XxxDetailResponseDto`(출처 = ReadModel)와 **모양이 같아도 공유·상속하지 않는다**(`api-response.md §8`).
+
+```typescript
+// admin-command.response.dto.ts — 쿼리 DetailResponseDto와 독립 (공통 Base 없음)
+export class AdminCommandResponseDto {
+  @ApiProperty({ type: String, description: '관리자 ID (ULID)' })
+  id: string;
+  // ... 필드를 독립 선언 (쿼리 DTO와 우연히 같아도 별도)
+}
+```
+
+- **왜 Base도 공유 안 하나**: 두 출처(애그리거트 투영 vs ReadModel)는 능력이 달라(쿼리만 JOIN/계산 가능) 요구사항 변경 시 발산한다. 공통 Base는 그 변경의 재결합 지점이 되므로 둔다(§3의 Base 상속은 *역할 간* 격리용 — 커맨드↔쿼리엔 적용 안 함).
+- **파일명**: `{entity}-command.response.dto.ts`. 커맨드는 출처가 단일 `XxxPrimitives`라 register/update/상태변경이 **한 커맨드 DTO 공유 가능**(쿼리와만 분리).
+
 ## status / enum 필드
 
 - 응답의 status 등 enum 필드는 **`string` 타입**으로 두고, 허용값은 `@ApiProperty({ enum: [...] })`에 **리터럴 배열**로 문서화한다. (별도 enum 타입을 응답에 강제하지 않음 — 값은 DB/도메인 그대로 passthrough)

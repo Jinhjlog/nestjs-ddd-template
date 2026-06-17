@@ -39,7 +39,7 @@ src/module/{module-name}/presentation/
 │   ├── request/        # create/update/find-list 등 + index.ts
 │   ├── response/       # list/detail (+ base) 등 + index.ts
 │   └── index.ts
-└── transformers/       # ReadModel → Response DTO 변환 + index.ts
+└── transformers/       # ReadModel(쿼리)·XxxPrimitives(커맨드) → Response DTO 변환 + index.ts
 ```
 
 ---
@@ -69,7 +69,7 @@ src/module/{module-name}/presentation/
 
 ### 5. Transformer 사용
 
-- 컨트롤러 인라인 매핑 금지 → **Transformer(static)**. `toListResponse()`/`toDetailResponse()` 등. (기존 구조에 맞춤)
+- 컨트롤러 인라인 매핑 금지 → **Transformer(static)**. 쿼리: `toListResponse()`/`toDetailResponse()`(ReadModel) · **커맨드: `fromPrimitives()`**(애그리거트 `toPrimitives()` 결과 — 쿼리용과 **분리**, `api-response.md §8`). (기존 구조에 맞춤)
 
 ### 6. nullable 변환
 

@@ -6,6 +6,7 @@ import {
 } from '@shared/exception';
 import { AdminRepository } from '../../domain/repositories/admin.repository';
 import { AdminRole } from '../../domain/models/admin/admin-role';
+import { AdminPrimitives } from '../../domain/models/admin/admin';
 
 export interface UpdateAdminDto {
   /** 수정 대상 관리자 ID */
@@ -25,7 +26,7 @@ export interface UpdateAdminDto {
 export class UpdateAdminUseCase {
   constructor(private readonly adminRepository: AdminRepository) {}
 
-  async execute(dto: UpdateAdminDto): Promise<{ id: string }> {
+  async execute(dto: UpdateAdminDto): Promise<AdminPrimitives> {
     // 1. DTO → 도메인 모델 변환 및 검증 (인메모리, DB 호출 전 빠른 실패)
     const name =
       dto.name !== undefined
@@ -70,6 +71,7 @@ export class UpdateAdminUseCase {
     // 5. 저장
     await this.adminRepository.save(admin);
 
-    return { id: admin.id.toString() };
+    // 6. 수정 결과 스냅샷 반환 (재조회 없이 애그리거트에서 직접)
+    return admin.toPrimitives();
   }
 }

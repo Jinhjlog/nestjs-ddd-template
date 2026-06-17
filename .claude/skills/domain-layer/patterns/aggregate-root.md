@@ -233,6 +233,46 @@ static create(
   - `PositiveNumber`: 양수
   - `Coordinate`: 좌표값
 
+## 원시 투영 (`HasPrimitives`) — 옵트인
+
+커맨드(생성/수정/상태변경) 응답을 **재조회 없이 애그리거트에서 직접** 주려는 경우에만, 그 애그리거트가 `HasPrimitives<P>`(`@lib/domain`)를 **implements** 하고 `toPrimitives()`로 **민감필드(password 등) 제외한 원시 표현**을 반환한다. (`api-response.md §8`)
+
+```typescript
+import { AggregateRoot, BoundedString, Email, HasPrimitives, UniqueEntityId } from '@lib/domain';
+
+// XxxPrimitives 타입은 이 애그리거트 파일에 co-locate
+export interface AdminPrimitives {
+  id: string;
+  loginId: string;
+  email?: string;
+  isActive: boolean;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+export class Admin
+  extends AggregateRoot<AdminProps>
+  implements HasPrimitives<AdminPrimitives>
+{
+  // ...getter, 도메인 메서드...
+
+  toPrimitives(): AdminPrimitives {
+    return {
+      id: this.id.toString(),
+      loginId: this.props.loginId.value,
+      email: this.props.email?.value,
+      isActive: this.props.isActive,
+      createdAt: this.props.createdAt,
+      updatedAt: this.props.updatedAt,
+      // password 등 민감필드는 의도적으로 제외
+    };
+  }
+}
+```
+
+- **base에 abstract로 강제하지 않는다** — 투영이 필요한 애그리거트만 옵트인. (① 모든 모델이 응답 투영 불필요 ② 충실한 전체 스냅샷 ≠ 안전한 공개 투영 ③ 민감필드 누수 표면 축소. `rules/domain.md`)
+- UseCase는 `aggregate.toPrimitives()`를 반환, presentation은 쿼리 ReadModel과 **분리된** `fromPrimitives`로 응답 DTO에 매핑.
+
 ## Entity와 구분
 
 | 구분         | Aggregate Root         | Entity (하위)         |
@@ -275,7 +315,8 @@ export class Order extends AggregateRoot<OrderProps> {
   }
 
   /** 영속화 완료 후 추적 상태 초기화 (Repository가 save 성공 후 호출) */
-  clearRemovedItems(): void {
+  // 이름은 주 추적 대상(ID 배열) 기준으로 짓고, 부수 추적(storageKeys)도 함께 비운다.
+  clearRemovedItemIds(): void {
     this._removedItemIds = [];
     this._removedStorageKeys = [];
   }
@@ -311,5 +352,5 @@ export class Order extends AggregateRoot<OrderProps> {
 
 - **`this.props.items = newArray` 직접 대입 금지** → 제거 추적이 누락돼 Repository가 삭제하지 못한다. 전체 교체가 필요하면 `removeItems(빠진 것) + addItems(새 것)` 로 표현한다. (현재 집합과 diff하여 제거분을 추적하는 단일 메서드도 가능)
 - 하위 컬렉션 getter는 **`readonly` 배열**로 노출해 메서드를 통하지 않은 변경을 막는다.
-- `clearRemovedXxx()` 는 **트랜잭션 성공 후** 호출한다(롤백 시 추적 보존 → 재시도 안전). 스토리지 정리가 필요한 UseCase는 `save()` **전에** `removedStorageKeys` 를 캡처한다.
+- `clearRemovedXxxIds()` 는 **트랜잭션 성공 후** 호출한다(롤백 시 추적 보존 → 재시도 안전). 스토리지 정리가 필요한 UseCase는 `save()` **전에** `removedStorageKeys` 를 캡처해 DB 커밋 성공 후 실제 스토리지를 삭제한다(캡처 안 하면 `save()`가 비워 유실).
 - 추가만 있고 제거가 없는 append-only 컬렉션(예: 로그·댓글)은 제거 추적 없이 `upsert`만 하고 삭제 단계를 두지 않는다.

@@ -8,7 +8,7 @@ user-invocable: true
 # Application Layer 구현 스킬
 
 > **범용 패턴(책).** G 단계에서 **Sonnet 서브에이전트가 이 책을 읽고** API 1개씩 구현(`rules/agents.md`).
-> **반드시 `.claude/rules/` 준수**: `validation.md`(검증=VO, UseCase는 원시값→VO `create` 위임), `domain.md`(행위 메서드는 이 단계에서 필요해질 때 추가), `conventions.md`(수정/생성은 디테일 재조회 반환 등). 조회 실패는 NotFound 예외(errorCode 조사).
+> **반드시 `.claude/rules/` 준수**: `validation.md`(검증=VO, UseCase는 원시값→VO `create` 위임), `domain.md`(행위 메서드는 이 단계에서 필요해질 때 추가 / 원시투영 `HasPrimitives` 옵트인), `api-response.md §8`(**커맨드(생성/수정)는 재조회 없이 애그리거트 `toPrimitives()` 결과를 반환**). 조회 실패는 NotFound 예외(errorCode 조사).
 
 ## ⚠️ IMPORTANT: Claude 자동 실행 지시사항
 

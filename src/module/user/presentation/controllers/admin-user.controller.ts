@@ -22,6 +22,7 @@ import { DeactivateUserUseCase } from '../../application/usecases/deactivate-use
 import { GetAdminUserListRequestDto } from '../dtos/request/get-admin-user-list.request.dto';
 import { AdminUserListResponseDto } from '../dtos/response/admin-user-list.response.dto';
 import { AdminUserDetailResponseDto } from '../dtos/response/admin-user-detail.response.dto';
+import { AdminUserCommandResponseDto } from '../dtos/response/admin-user-command.response.dto';
 import { AdminUserTransformer } from '../transformers/admin-user.transformer';
 
 @ApiTags('관리자 - 회원 관리')
@@ -88,7 +89,7 @@ export class AdminUserController {
   })
   @ApiOkResponse({
     description: '회원 활성화 성공',
-    type: AdminUserDetailResponseDto,
+    type: AdminUserCommandResponseDto,
   })
   @ApiProblemResponse(
     HttpStatus.NOT_FOUND,
@@ -102,10 +103,9 @@ export class AdminUserController {
   @Patch(':userId/activate')
   async activateUser(
     @Param('userId') userId: string,
-  ): Promise<AdminUserDetailResponseDto> {
-    await this.activateUserUseCase.execute(userId);
-    const detail = await this.findAdminUserDetailUseCase.execute(userId);
-    return AdminUserTransformer.toDetailResponse(detail);
+  ): Promise<AdminUserCommandResponseDto> {
+    const user = await this.activateUserUseCase.execute(userId);
+    return AdminUserTransformer.fromPrimitives(user);
   }
 
   @ApiOperation({
@@ -120,7 +120,7 @@ export class AdminUserController {
   })
   @ApiOkResponse({
     description: '회원 비활성화 성공',
-    type: AdminUserDetailResponseDto,
+    type: AdminUserCommandResponseDto,
   })
   @ApiProblemResponse(
     HttpStatus.NOT_FOUND,
@@ -134,10 +134,9 @@ export class AdminUserController {
   @Patch(':userId/deactivate')
   async deactivateUser(
     @Param('userId') userId: string,
-  ): Promise<AdminUserDetailResponseDto> {
-    await this.deactivateUserUseCase.execute(userId);
-    const detail = await this.findAdminUserDetailUseCase.execute(userId);
-    return AdminUserTransformer.toDetailResponse(detail);
+  ): Promise<AdminUserCommandResponseDto> {
+    const user = await this.deactivateUserUseCase.execute(userId);
+    return AdminUserTransformer.fromPrimitives(user);
   }
 
   @ApiOperation({

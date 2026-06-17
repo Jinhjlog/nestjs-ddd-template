@@ -90,7 +90,8 @@ export interface UpdateProductDto {
 
 ```typescript
 // UseCase 내부에서 세 가지 상태 구분
-async execute(dto: UpdateProductDto): Promise<void> {
+// 반환: 커맨드는 재조회 없이 애그리거트 원시 투영 (api-response.md §8) — void 아님
+async execute(dto: UpdateProductDto): Promise<ProductPrimitives> {
   const product = await this.productRepository.findById(dto.id);
   if (!product) { throw new EntityNotFoundException({ ... }); }
 
@@ -107,8 +108,12 @@ async execute(dto: UpdateProductDto): Promise<void> {
 
   product.update({ name, description, ... });
   await this.productRepository.save(product);
+
+  return product.toPrimitives(); // 수정된 리소스 표현 반환 (재조회 X)
 }
 ```
+
+> 이 패턴의 초점은 **nullable 3-state(undefined/null/값) 처리**다. 반환 타입은 커맨드 표준(`XxxPrimitives`)을 따른다 — 순수 액션(삭제 등)만 `void`/204. (`usecase.md` 패턴 2·`api-response.md §8`)
 
 ## 패턴 3: Find List DTO (페이지네이션 포함)
 
@@ -189,16 +194,19 @@ async execute(dto: LoginDto): Promise<{ accessToken: string; refreshToken: strin
 
 > conventions §0대로 **프로젝트에 기존 결과 네이밍 관례가 있으면 그것을 우선**(조사 후 따름).
 
-### 결과(인라인) vs ReadModel
+### 커맨드 결과 vs 쿼리 결과
 
-- **쿼리(조회) 결과 = ReadModel 그대로** — 상세는 `Promise<XxxReadModel>` 직접, 목록은 `Promise<{ items: XxxReadModel[]; nextCursor?; hasNext }>` 인라인. transformer가 이 **ReadModel을 직접** 받아 ResponseDto로 변환한다 (별도 output 타입 없음).
-- **커맨드 결과 = `{ id }`/`{ jobId }` 등 인라인** (서버 생성 식별자·메타).
+- **쿼리(조회) = ReadModel 그대로** — 상세 `Promise<XxxReadModel>` 직접, 목록 `Promise<{ items: XxxReadModel[]; nextCursor?; hasNext }>` 인라인. transformer가 **ReadModel을 직접** 받아 ResponseDto로 변환(별도 output 타입 없음).
+- **커맨드 결과는 3가지** (`api-response.md §8`):
+  1. **리소스 반환**(생성/수정/상태변경) → `aggregate.toPrimitives()`의 **`XxxPrimitives`** (`HasPrimitives<P>` 옵트인, **도메인 소유** named 타입). **재조회 X**. presentation은 `fromPrimitives`로 매핑.
+  2. **비리소스 커스텀 계산 결과**(토큰·진척률 등) → 인라인 `{ ... }`.
+  3. **순수 액션**(삭제·이벤트) → `void`/204.
 
-| 구분      | 결과 (인라인 `{ }`)        | ReadModel        |
-| --------- | -------------------------- | ---------------- |
-| 위치      | UseCase 반환 타입에 인라인 | `domain/models/` |
-| 용도      | UseCase 처리 결과(커맨드)  | 조회 전용 데이터 |
-| 생성 주체 | UseCase                    | Query Service    |
+| 구분            | 리소스 커맨드                 | 커스텀 결과    | 쿼리 ReadModel                        |
+| --------------- | ----------------------------- | -------------- | ------------------------------------- |
+| 타입            | `XxxPrimitives` (도메인 소유) | 인라인 `{ }`   | `XxxReadModel` (`domain/models/`)     |
+| 생성 주체       | 애그리거트 `toPrimitives()`   | UseCase        | Query Service                         |
+| presentation 매핑 | `fromPrimitives`            | 직접/transformer | `toDetailResponse`/`toListResponse` |
 
 ## 패턴 5: Custom Action DTO
 

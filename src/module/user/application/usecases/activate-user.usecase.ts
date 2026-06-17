@@ -4,12 +4,13 @@ import {
   EntityNotFoundException,
 } from '@shared/exception';
 import { UserRepository } from '../../domain/repositories/user.repository';
+import { UserPrimitives } from '../../domain/models/user/user';
 
 @Injectable()
 export class ActivateUserUseCase {
   constructor(private readonly userRepository: UserRepository) {}
 
-  async execute(userId: string): Promise<void> {
+  async execute(userId: string): Promise<UserPrimitives> {
     const user = await this.userRepository.findById(userId);
     if (!user) {
       throw new EntityNotFoundException({
@@ -29,5 +30,7 @@ export class ActivateUserUseCase {
 
     user.activate();
     await this.userRepository.save(user);
+
+    return user.toPrimitives();
   }
 }
