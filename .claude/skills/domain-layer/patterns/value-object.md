@@ -41,7 +41,9 @@ const title = BoundedString.unsafeCreate(rawValue);
 
 내장 VO로 표현할 수 없는 도메인 규칙이 있을 때만 커스텀 VO를 작성합니다.
 
-### 실제 코드 예시 (Password)
+### 커스텀 VO 예시 (Password 기반)
+
+> ⚠️ 아래는 커스텀 VO 작성 **패턴**을 보여주는 예시다 — 실제 `@lib/domain`의 Password와 검증 규칙·필드가 다를 수 있다(길이 상한·해시·비교 등은 실제 구현을 조사해 따른다). **선언한 에러 상수는 반드시 `create()`에서 사용**한다(쓰지 않을 규칙은 선언하지 않음 — 데드 상수 금지).
 
 ```typescript
 import { ValueObject } from '@lib/domain';
@@ -49,9 +51,6 @@ import { ValueObjectValidationException } from '@shared/exception';
 
 export const PasswordError = {
   TooShort: '비밀번호는 최소 8자 이상이어야 합니다.',
-  NoUpperCase: '비밀번호에 대문자가 포함되어야 합니다.',
-  NoLowerCase: '비밀번호에 소문자가 포함되어야 합니다.',
-  NoNumber: '비밀번호에 숫자가 포함되어야 합니다.',
   NoSpecialChar: '비밀번호에 특수문자가 포함되어야 합니다.',
 } as const;
 
@@ -73,22 +72,27 @@ export class Password extends ValueObject<PasswordProps> {
     return this.props.hashed;
   }
 
+  private static readonly SPECIAL_CHAR_REGEX = /[!@#$%^&*(),.?":{}|<>]/;
+
   /**
-   * 비밀번호를 생성합니다.
+   * 비밀번호를 검증 후 생성합니다.
    * @param password 비밀번호 원문
    * @param hashed 이미 해시된 값인지 여부
-   * @throws {ValueObjectValidationException} TOO_SHORT - 8자 미만
+   * @throws {ValueObjectValidationException} PASSWORD_TOO_SHORT - 8자 미만
+   * @throws {ValueObjectValidationException} PASSWORD_MISSING_SPECIAL_CHARACTER - 특수문자 미포함
    */
   static async create(password: string, hashed?: boolean): Promise<Password> {
-    if (!hashed) {
-      if (password.length < 8) {
-        throw new ValueObjectValidationException({
-          entityName: Password.name,
-          reason: PasswordError.TooShort,
-          errorCode: 'TOO_SHORT',
-        });
-      }
-      // 추가 검증 로직...
+    if (password.length < 8) {
+      throw new ValueObjectValidationException({
+        code: 'PASSWORD_TOO_SHORT',
+        detail: PasswordError.TooShort,
+      });
+    }
+    if (!Password.SPECIAL_CHAR_REGEX.test(password)) {
+      throw new ValueObjectValidationException({
+        code: 'PASSWORD_MISSING_SPECIAL_CHARACTER',
+        detail: PasswordError.NoSpecialChar,
+      });
     }
     return new Password({ value: password, hashed: hashed ?? false });
   }
@@ -138,9 +142,8 @@ export class {ValueObjectName} extends ValueObject<{ValueObjectName}Props> {
   static create(value: string): {ValueObjectName} {
     if (!value || value.trim().length === 0) {
       throw new ValueObjectValidationException({
-        entityName: {ValueObjectName}.name,
-        reason: {ValueObjectName}Error.InvalidValue,
-        errorCode: 'INVALID_VALUE',
+        code: '{FIELD}_INVALID',
+        detail: {ValueObjectName}Error.InvalidValue,
       });
     }
 
@@ -163,4 +166,4 @@ export class {ValueObjectName} extends ValueObject<{ValueObjectName}Props> {
 - **static `unsafeCreate()`**: validation 없음 (매퍼에서 사용)
 - Error 상수 객체는 `as const`로 정의
 - Exception은 `ValueObjectValidationException` 사용 (import from `@shared/exception`)
-- `ValueObjectValidationException` 파라미터: `{ entityName, reason, errorCode }`
+- `ValueObjectValidationException` 파라미터: **`{ code, detail }`** (code=머신코드 SCREAMING_SNAKE, detail=사람 메시지. fail-fast 단건 → 400. `api-response.md §3` 참조)

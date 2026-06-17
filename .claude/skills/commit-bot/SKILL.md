@@ -42,7 +42,7 @@ Clean Architecture 레이어별로 변경사항을 분석하고 구조화된 커
 - **레이어 혼합 커밋**: 하나의 커밋에 여러 레이어 포함 금지
 - **일괄 커밋**: 모든 변경사항을 한 커밋에 넣기 금지
 - **모호한 메시지**: "WIP", "fix", "update" 단독 사용 금지
-- **작성자 표기**: 커밋/PR의 AI·Co-Authored-By 표기 **정책은 프로젝트 관례를 조사**해 따른다 (금지하는 프로젝트도, 요구하는 프로젝트도 있음 — rules/git-workflow).
+- **작성자 표기**: 이 프로젝트는 **Claude 어트리뷰션 금지로 확정**(CLAUDE.md). 커밋/PR에 `Co-Authored-By`·AI 관련 표기 **절대 포함 금지** (기존 로그도 전부 무표기).
 - **자동 push**: push는 절대 수행하지 않음 (사용자 요청 또는 G 자동화 규칙에 한함). 머지는 항상 사람.
 
 ## 커밋 메시지 형식
@@ -109,14 +109,17 @@ git ls-files --others --exclude-standard
 
 변경된 파일을 레이어별로 분류합니다:
 
-| 레이어         | 경로 패턴                                                                       |
-| -------------- | ------------------------------------------------------------------------------- |
-| Domain         | `domain/models/`, `domain/repositories/`, `domain/services/`, `domain/events/`  |
-| Infrastructure | `infra/repositories/`, `infra/mappers/`, `infra/services/`                      |
-| Application    | `application/usecases/`, `application/dtos/`, `application/events/`             |
-| Presentation   | `presentation/controllers/`, `presentation/dtos/`, `presentation/transformers/` |
-| Module         | `*.module.ts`, `index.ts` (barrel exports)                                      |
-| Docs           | `docs/`, `*.md`                                                                 |
+| 레이어         | 경로 패턴                                                                                                        |
+| -------------- | ---------------------------------------------------------------------------------------------------------------- |
+| Domain         | `domain/models/`, `domain/repositories/`, `domain/services/`, `domain/events/`                                   |
+| Infrastructure | `infra/repositories/`, `infra/mappers/`, `infra/services/`, `infra/adapters/`, `infra/ohs/`, `infra/schedulers/` |
+| Application    | `application/usecases/`, `application/event-handlers/`, `application/ohs/`, `application/ports/`                 |
+| Presentation   | `presentation/controllers/`, `presentation/dtos/`, `presentation/transformers/`                                  |
+| Module         | `*.module.ts`, `index.ts` (barrel exports)                                                                       |
+| Docs           | `docs/`, `*.md`                                                                                                  |
+
+> ⚠️ **입력 DTO는 별도 파일/폴더가 없다** — UseCase 파일에 `export interface`로 인라인(전사 표준, `conventions.md §4`)이므로 `application/dtos/` 경로는 두지 않는다. 입력 DTO 변경은 그 UseCase가 속한 **Application 커밋**에 포함된다.
+> 이벤트 핸들러 디렉터리는 **`application/event-handlers/`**(도메인의 `domain/events/`와 구분 — `handlers/`·`events/` 아님).
 
 ### 4단계: 레이어 순서대로 커밋
 
@@ -219,8 +222,8 @@ git status
 ✨ application: <기능> 유즈케이스 구현
 
 - <UseCase> 유즈케이스 추가
-- <Dto> DTO 추가
-- 검증 로직 구현
+- 입력 DTO 인라인 / 결과 반환 정의
+- 도메인 오케스트레이션 (검증은 VO 위임 — validation.md)
 ```
 
 ### Presentation Layer

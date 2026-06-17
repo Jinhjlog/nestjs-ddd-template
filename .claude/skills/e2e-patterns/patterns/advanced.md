@@ -211,7 +211,7 @@ it('TC-XXX-006: 이미 승인된 항목 재승인 시 실패', async () => {
 
   // Then
   expectError(response, {
-    statusCode: 400,
+    statusCode: 422,
     errorCode: 'INVALID_APPROVAL_STATUS_TRANSITION',
   });
 });
@@ -269,7 +269,7 @@ it('TC-XXX-008: 종료일이 시작일보다 이전이면 실패', async () => {
 
   // Then
   expectError(response, {
-    statusCode: 400,
+    statusCode: 422,
     errorCode: 'INVALID_DATE_RANGE',
   });
 });
@@ -300,7 +300,7 @@ it('TC-XXX-009: 기간이 겹치는 항목 등록 시 실패', async () => {
 
   // Then
   expectError(response, {
-    statusCode: 400,
+    statusCode: 422,
     errorCode: 'PERIOD_OVERLAP',
   });
 });
@@ -402,7 +402,7 @@ it('TC-XXX-012: PENDING 상태 파일 첨부 시 실패', async () => {
 
   // Then
   expectError(response, {
-    statusCode: 400,
+    statusCode: 422,
     errorCode: 'FILE_NOT_CONFIRMED',
   });
 });
@@ -507,7 +507,7 @@ it('TC-XXX-016: 최대 개수 초과 시 등록 실패', async () => {
 
   // Then
   expectError(response, {
-    statusCode: 400,
+    statusCode: 422,
     errorCode: 'MAX_LIMIT_EXCEEDED',
   });
 });
@@ -570,7 +570,7 @@ it('TC-XXX-018: 소속 항목이 있는 리소스 삭제 시 실패', async () =
 
   // Then
   expectError(response, {
-    statusCode: 400,
+    statusCode: 422,
     errorCode: 'RESOURCE_HAS_CHILDREN',
   });
 });

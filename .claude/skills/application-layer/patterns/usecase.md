@@ -1,9 +1,12 @@
 # UseCase 작성 패턴
 
-UseCase는 비즈니스 유즈케이스를 실행하는 애플리케이션 서비스입니다. 도메인 메서드를 오케스트레이션하고, **ReadModel(쿼리)** 또는 **인라인 결과 객체(커맨드)** 를 반환합니다.
+UseCase는 비즈니스 유즈케이스를 실행하는 애플리케이션 서비스입니다. 도메인 메서드를 오케스트레이션하고, **ReadModel(쿼리)** 또는 **리소스 원시투영/인라인 결과(커맨드)** 를 반환합니다.
 
 > **입력 DTO 인라인 (전사 표준)**: 입력 DTO가 그 UseCase **1곳에서만** 쓰이면 별도 `../dtos` 파일이 아니라 **UseCase 파일 상단에 `export interface`로 인라인**한다 (`conventions.md` §4). 공유 DTO(2개+ UseCase)만 별도 파일 — 단 그건 결합 신호.
-> **결과(출력)는 named 타입을 만들지 않는다**: **쿼리 결과 = ReadModel 그대로**(상세 `Promise<XxxReadModel>` 직접 / 목록 `Promise<{ items: XxxReadModel[]; nextCursor?; hasNext }>` 인라인 — transformer가 ReadModel을 직접 받음), **커맨드 결과 = `{ id }` 등 인라인**. (`...Result` 네이밍은 fp `Either/Result` 모나드와 혼동 → 회피) 단 conventions §0대로 **프로젝트에 기존 결과 네이밍 관례가 있으면 그것을 우선**(조사 후 따름).
+> **결과(출력) 타입**:
+> - **쿼리 = ReadModel 그대로** (상세 `Promise<XxxReadModel>` 직접 / 목록 `Promise<{ items: XxxReadModel[]; nextCursor?; hasNext }>` 인라인 — transformer가 ReadModel을 직접 받음).
+> - **커맨드 = ① 리소스 반환이면 `aggregate.toPrimitives()`의 `XxxPrimitives`** (애그리거트가 `HasPrimitives<P>` 옵트인, **도메인 소유** named 타입 — `api-response.md §8`·`domain.md`) **② 리소스 아닌 커스텀 계산 결과면 인라인 `{ ... }`** **③ 순수 액션(삭제·이벤트 등)이면 `void`**.
+> - `...Result` 네이밍은 fp `Either/Result` 모나드와 혼동되어 **회피** (그래서 리소스는 `Primitives`, 커스텀은 인라인). conventions §0대로 **기존 결과 관례가 있으면 우선**.
 > **CQRS**: 커맨드(생성/수정/삭제/상태변경)는 **QueryService에 의존하지 않는다** — 자기 컨텍스트의 존재/스코프 확인은 **Repository finder**(`existsBy...`/`findByIdAndOwner`), 크로스 BC는 **LookupService**. (QueryService는 조회 UseCase 전용)
 
 ## 패턴 1: Command UseCase (생성)
@@ -13,7 +16,8 @@ Entity의 `create()` 정적 메서드를 호출하여 생성합니다.
 ```typescript
 import { Injectable } from '@nestjs/common';
 import { BoundedString } from '@lib/domain';
-import { User } from '../../domain/models';
+// User는 HasPrimitives<UserPrimitives>를 옵트인 구현 (UserPrimitives는 도메인 소유)
+import { User, UserPrimitives } from '../../domain/models';
 import { UserRepository } from '../../domain/repositories';
 
 // 입력 DTO는 이 UseCase 파일에 인라인 (전사 표준 — conventions §4)
@@ -26,7 +30,7 @@ export interface SignUpUserDto {
 export class SignUpUserUseCase {
   constructor(private readonly userRepository: UserRepository) {}
 
-  async execute(dto: SignUpUserDto): Promise<{ userId: string }> {
+  async execute(dto: SignUpUserDto): Promise<UserPrimitives> {
     // 1. Value Objects 생성
     const username = BoundedString.create(dto.username, {
       fieldName: 'username',
@@ -50,8 +54,8 @@ export class SignUpUserUseCase {
     // 3. 저장
     await this.userRepository.save(user);
 
-    // 4. 결과 반환
-    return { userId: user.id.toString() };
+    // 4. 결과 반환 — 재조회 없이 애그리거트 원시 투영 (민감필드 제외)
+    return user.toPrimitives();
   }
 }
 ```
@@ -60,8 +64,9 @@ export class SignUpUserUseCase {
 
 - `Entity.create()` 정적 메서드 사용 (`new Entity()` 직접 호출 금지)
 - Value Objects는 UseCase에서 생성 (원시값 → VO)
-- 반환값은 `{ entityId: string }` 형태
-- **응답 조립은 컨트롤러 책임**: command UseCase는 `void`/`{id}`만 반환하고, **컨트롤러가 find-detail UseCase로 재조회해 디테일을 응답**한다(수정/상태변경도 동일 — rules/conventions). 단 **조회 권한이 없는 생성**(예: 비회원 접수)은 디테일 재조회 대신 `{ id, createdAt }` 같은 최소 응답을 UseCase가 돌려준다.
+- **반환값 = 리소스 원시 표현 (`aggregate.toPrimitives()`)**: command UseCase는 저장 후 **재조회 없이 애그리거트에서 직접** `XxxPrimitives`를 반환한다(`api-response.md §8`). 애그리거트는 `HasPrimitives<P>`(`@lib/domain`)를 **옵트인** 구현(민감필드 제외). 컨트롤러는 쿼리 ReadModel과 분리된 `fromPrimitives`로 응답 DTO에 매핑.
+  - ❌ `void`/`{id}`만 반환 후 컨트롤러가 find-detail로 **재조회하지 않는다** (DB 풀 오버헤드·CQRS상 커맨드가 쿼리측 비의존).
+  - 순수 액션(로그아웃·논리삭제 등 클라가 표시 안 함)만 `void`/204.
 
 ## 패턴 2: Command UseCase (수정)
 
@@ -70,6 +75,7 @@ export class SignUpUserUseCase {
 ```typescript
 import { Injectable } from '@nestjs/common';
 import { BoundedString } from '@lib/domain';
+import { UserPrimitives } from '../../domain/models';
 import { UserRepository } from '../../domain/repositories';
 import { EntityNotFoundException } from '@shared/exception';
 
@@ -85,7 +91,7 @@ export interface UpdateStudentDto {
 export class UpdateStudentUseCase {
   constructor(private readonly userRepository: UserRepository) {}
 
-  async execute(dto: UpdateStudentDto): Promise<void> {
+  async execute(dto: UpdateStudentDto): Promise<UserPrimitives> {
     // 1. 엔티티 조회
     const user = await this.userRepository.findById(dto.userId);
 
@@ -122,6 +128,9 @@ export class UpdateStudentUseCase {
 
     // 3. 저장
     await this.userRepository.save(user);
+
+    // 4. 수정 결과 반환 — 재조회 없이 애그리거트 원시 투영
+    return user.toPrimitives();
   }
 }
 ```
@@ -130,7 +139,7 @@ export class UpdateStudentUseCase {
 
 - `EntityNotFoundException`으로 존재 여부 확인
 - 도메인 메서드를 통한 수정 (직접 props 수정 금지)
-- 반환값 없음 (`void`)
+- **수정된 리소스 원시 표현 반환**(`user.toPrimitives()` — 재조회 X). 클라가 표시하지 않는 순수 액션이면 `void`/204.
 
 ## 패턴 3: Command UseCase (상태 변경)
 
@@ -138,6 +147,7 @@ export class UpdateStudentUseCase {
 
 ```typescript
 import { Injectable } from '@nestjs/common';
+import { UserPrimitives } from '../../domain/models';
 import { UserRepository } from '../../domain/repositories';
 import { EntityNotFoundException } from '@shared/exception';
 
@@ -150,7 +160,7 @@ export interface ActivateStudentDto {
 export class ActivateStudentUseCase {
   constructor(private readonly userRepository: UserRepository) {}
 
-  async execute(dto: ActivateStudentDto): Promise<void> {
+  async execute(dto: ActivateStudentDto): Promise<UserPrimitives> {
     const user = await this.userRepository.findById(dto.userId);
 
     if (!user) {
@@ -164,6 +174,9 @@ export class ActivateStudentUseCase {
     user.activate();
 
     await this.userRepository.save(user);
+
+    // 상태 변경 결과 반환 — 재조회 없이 애그리거트 원시 투영
+    return user.toPrimitives();
   }
 }
 ```
@@ -443,11 +456,16 @@ import { Injectable } from '@nestjs/common';
 import { CategoryRepository } from '../../domain/repositories';
 import { EntityNotFoundException } from '@shared/exception';
 
+// 입력 DTO는 이 UseCase 파일에 인라인 (전사 표준 — conventions §4)
+export interface DeleteCategoryDto {
+  categoryId: string;
+}
+
 @Injectable()
 export class DeleteCategoryUseCase {
   constructor(private readonly categoryRepository: CategoryRepository) {}
 
-  async execute(dto: { categoryId: string }): Promise<void> {
+  async execute(dto: DeleteCategoryDto): Promise<void> {
     const category = await this.categoryRepository.findById(dto.categoryId);
 
     if (!category) {
@@ -467,10 +485,10 @@ export class DeleteCategoryUseCase {
 
 | 유형          | 의존성                      | 반환 타입                    | 예시                                         |
 | ------------- | --------------------------- | ---------------------------- | -------------------------------------------- |
-| 생성          | Repository                  | `{ entityId: string }`       | SignUpUserUseCase                            |
-| 수정/상태변경 | Repository                  | `void`                       | UpdateStudentUseCase, ActivateStudentUseCase |
-| 삭제          | Repository                  | `void`                       | DeleteCategoryUseCase                        |
-| 결과 반환     | Repository + Domain Service | 인라인 `{ ... }`             | RecordHeartbeatUseCase                       |
+| 생성          | Repository                  | **`XxxPrimitives`** (`toPrimitives()`) | SignUpUserUseCase                  |
+| 수정/상태변경 | Repository                  | **`XxxPrimitives`** (`toPrimitives()`) | UpdateStudentUseCase, ActivateStudentUseCase |
+| 삭제          | Repository                  | `void` (순수 액션 → 204)     | DeleteCategoryUseCase                        |
+| 결과 반환(비리소스) | Repository + Domain Service | 인라인 `{ ... }`       | RecordHeartbeatUseCase                       |
 | 목록 조회     | Query Service               | `{ items, totalCount, ... }` | FindProductListUseCase                       |
 | 상세 조회     | Query Service               | `ReadModel`                  | FindUserUseCase                              |
 | 이벤트 처리   | Repository + Domain Service | `void`                       | HandleLectureCompletedUseCase                |

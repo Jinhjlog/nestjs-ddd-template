@@ -5,12 +5,14 @@ Event Handler는 Domain Event를 구독하여 부수 효과를 처리합니다. 
 ## 기본 구조
 
 ```typescript
-import { Injectable, OnModuleInit } from '@nestjs/common';
+import { Injectable, Logger, OnModuleInit } from '@nestjs/common';
 import { DomainEvents } from '@lib/domain/events/domain-events';
 import { LectureCompletedEvent } from 'src/module/learning-progress/domain/events';
 
 @Injectable()
 export class LectureCompletedEventHandler implements OnModuleInit {
+  private readonly logger = new Logger(LectureCompletedEventHandler.name);
+
   constructor(
     private readonly handleLectureCompleted: HandleLectureCompletedUseCase,
   ) {}
@@ -28,7 +30,8 @@ export class LectureCompletedEventHandler implements OnModuleInit {
 
       await this.handleLectureCompleted.execute(userId, courseId);
     } catch (error) {
-      console.error('[CourseCompletion] 과정 수료 판정 실패:', error);
+      // 핸들러는 예외를 상위로 전파하지 않고 로깅으로 마감 (프로젝트 로깅 관례 = Nest Logger)
+      this.logger.error('과정 수료 판정 실패', error);
     }
   }
 }
@@ -43,7 +46,7 @@ export class LectureCompletedEventHandler implements OnModuleInit {
 | 이벤트 데이터   | `event.metadata` (~~event.payload~~ 사용 금지)     |
 | handle 시그니처 | `async handle(event): Promise<void>`               |
 | 비동기 호출     | `void this.handle(event)` (register 콜백 내)       |
-| 에러 처리       | `try-catch` + `console.error()`                    |
+| 에러 처리       | `try-catch` + `this.logger.error()` (Nest Logger — `console` 금지) |
 | 디렉토리        | `application/event-handlers/` (~~handlers/~~ 아님) |
 | 파일명          | `{event-name}.event-handler.ts`                    |
 
@@ -124,8 +127,8 @@ async handle(event: LectureCompletedEvent): Promise<void> {
     const { userId, courseId } = event.metadata;
     await this.handleLectureCompleted.execute(userId, courseId);
   } catch (error) {
-    // 에러 로그만 기록, 예외 전파 안 함
-    console.error('[CourseCompletion] 과정 수료 판정 실패:', error);
+    // 에러 로그만 기록, 예외 전파 안 함 (Nest Logger 사용 — console 금지)
+    this.logger.error('과정 수료 판정 실패', error);
   }
 }
 ```

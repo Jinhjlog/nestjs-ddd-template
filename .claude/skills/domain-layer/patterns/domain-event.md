@@ -112,10 +112,20 @@ export class LectureProgress extends AggregateRoot<LectureProgressProps> {
 
 ## 이벤트 디스패치
 
-Repository의 `save()` 이후 Application 레이어에서 디스패치합니다:
+디스패치는 **Repository.save()가 책임진다** — 저장 성공 직후(트랜잭션 밖)에 한 번 비워준다. **UseCase는 `save()`만 호출**하면 되고 별도 디스패치 호출을 하지 않는다(이중 디스패치·누락 방지).
+
+> `AggregateRoot.addDomainEvent()`가 이미 `DomainEvents.markAggregateForDispatch(this)`로 대상 등록을 해두므로(`@lib/domain/aggregate-root.ts`), 실제 발행 트리거는 Repository 한 곳이면 충분하다. (참조: `infrastructure-layer/patterns/repository-impl.md`)
 
 ```typescript
-// UseCase에서
+// Repository.save() 내부 — 저장 성공 직후 디스패치
+await this.prisma.user.upsert({ ... });
+
+if (entity.domainEvents.length > 0) {
+  DomainEvents.dispatchEventsForAggregate(entity.id);
+}
+```
+
+```typescript
+// UseCase는 save()만 호출 — 디스패치 호출 없음
 await this.repository.save(entity);
-DomainEvents.dispatchEventsForAggregate(entity.id);
 ```

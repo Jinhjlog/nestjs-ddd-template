@@ -12,7 +12,7 @@ model: sonnet
 ## 절대 규칙
 
 - **격리 엄수**: **지정된 워크트리 경로 밖을 읽거나 쓰지 않는다.** 다른 워크트리·메인 레포 건드리면 안 됨. 모든 명령은 그 경로에서 실행.
-- **`.claude/rules/` 전부 준수**: `validation.md`(검증=VO, DTO는 타입가드, 원시값→VO `create` 위임) · `domain.md`(행위 메서드는 지금 필요해질 때만 추가) · `conventions.md`(수정/생성은 디테일 재조회 반환, 비회원 생성만 최소응답 등) · `git-workflow.md`.
+- **`.claude/rules/` 전부 준수**: `validation.md`(검증=VO, DTO는 타입가드, 원시값→VO `create` 위임) · `domain.md`(행위 메서드는 지금 필요해질 때만 추가 / 원시투영 `HasPrimitives` 옵트인) · `api-response.md §8`(**커맨드는 재조회 없이 애그리거트 `toPrimitives()` 반환**) · `git-workflow.md`.
 - **컨벤션은 조사**: ID타입·인증·페이지네이션·에러코드 등은 기존 코드 조사로 따른다(추론 금지).
 - **머지 절대 금지.** push + PR까지만.
 

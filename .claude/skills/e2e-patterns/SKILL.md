@@ -196,8 +196,7 @@ Transformer:
 기존 seed 파일의 패턴을 따라 새 seed 함수를 생성합니다:
 
 1. `test/helpers/seed/{entity}.seed.ts` 파일 생성
-2. `test/helpers/seed/index.ts` 배럴에 export 추가
-3. `test/helpers/seed.helper.ts` 배럴에 re-export 추가 (있는 경우)
+2. `test/helpers/seed/index.ts` 배럴에 `export * from './{entity}.seed';` 추가 (이 프로젝트의 seed 배럴은 `seed/index.ts` 하나)
 
 **seed 함수 작성 규칙:**
 
