@@ -2,6 +2,7 @@ import {
   AggregateRoot,
   BoundedString,
   Email,
+  HasPrimitives,
   Password,
   Phone,
   UniqueEntityId,
@@ -19,7 +20,22 @@ export interface UserProps {
   deletedAt?: Date;
 }
 
-export class User extends AggregateRoot<UserProps> {
+/** 회원 공개 원시 투영 (password 등 민감필드 제외) */
+export interface UserPrimitives {
+  id: string;
+  name?: string;
+  email: string;
+  phone?: string;
+  isActive: boolean;
+  createdAt: Date;
+  updatedAt: Date;
+  deletedAt?: Date;
+}
+
+export class User
+  extends AggregateRoot<UserProps>
+  implements HasPrimitives<UserPrimitives>
+{
   private constructor(props: UserProps) {
     super(props, new UniqueEntityId(props.id));
   }
@@ -54,6 +70,20 @@ export class User extends AggregateRoot<UserProps> {
 
   get deletedAt(): Date | undefined {
     return this.props.deletedAt;
+  }
+
+  /** 공개 원시 투영 (password 제외) */
+  toPrimitives(): UserPrimitives {
+    return {
+      id: this.id.toString(),
+      name: this.props.name?.value,
+      email: this.props.email.value,
+      phone: this.props.phone?.value,
+      isActive: this.props.isActive,
+      createdAt: this.props.createdAt,
+      updatedAt: this.props.updatedAt,
+      deletedAt: this.props.deletedAt,
+    };
   }
 
   deactivate(): void {

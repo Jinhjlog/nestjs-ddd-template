@@ -2,6 +2,7 @@ import {
   AggregateRoot,
   BoundedString,
   Email,
+  HasPrimitives,
   Password,
   UniqueEntityId,
 } from '@lib/domain';
@@ -21,7 +22,23 @@ export interface AdminProps {
   deletedAt?: Date;
 }
 
-export class Admin extends AggregateRoot<AdminProps> {
+/** 관리자 공개 원시 투영 (password 등 민감필드 제외) */
+export interface AdminPrimitives {
+  id: string;
+  loginId: string;
+  name: string;
+  email?: string;
+  role: string;
+  isActive: boolean;
+  lastLoginAt?: Date;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+export class Admin
+  extends AggregateRoot<AdminProps>
+  implements HasPrimitives<AdminPrimitives>
+{
   private constructor(props: AdminProps) {
     super(props, new UniqueEntityId(props.id));
   }
@@ -64,6 +81,21 @@ export class Admin extends AggregateRoot<AdminProps> {
 
   get deletedAt(): Date | undefined {
     return this.props.deletedAt;
+  }
+
+  /** 공개 원시 투영 (password 제외) */
+  toPrimitives(): AdminPrimitives {
+    return {
+      id: this.id.toString(),
+      loginId: this.props.loginId.value,
+      name: this.props.name.value,
+      email: this.props.email?.value,
+      role: this.props.role.value,
+      isActive: this.props.isActive,
+      lastLoginAt: this.props.lastLoginAt,
+      createdAt: this.props.createdAt,
+      updatedAt: this.props.updatedAt,
+    };
   }
 
   /** 마지막 로그인 시각 갱신 */
