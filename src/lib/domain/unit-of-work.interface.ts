@@ -13,13 +13,11 @@ export interface IUnitOfWork {
    *
    * @example
    * ```typescript
-   * await unitOfWork.execute(async (uow) => {
-   *   const txContext = uow.getTransactionContext();
-   *   const repo1 = new Repo1(null, txContext);
-   *   const repo2 = new Repo2(null, txContext);
-   *
-   *   await repo1.save(entity1);
-   *   await repo2.save(entity2);
+   * // 다중 애그리거트를 한 트랜잭션으로 (즉시 일관성 필요 시)
+   * // Repository는 트랜잭션을 모른다 — PrismaService가 ambient(ALS)로 자동 전파.
+   * await this.uow.execute(async () => {
+   *   await this.orderRepo.save(order);
+   *   await this.buyerRepo.save(buyer);
    * });
    * ```
    */
